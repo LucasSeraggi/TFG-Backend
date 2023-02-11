@@ -1,0 +1,30 @@
+{
+  "name": "tfg-backend",
+  "version": "1.0.0",
+  "description": "Unifei TFG",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LucasSeraggi/TFG-Backend.git"
+  },
+  "author": "Lucas Seraggi - Paulo Junior - Jackson Galdino",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/LucasSeraggi/TFG-Backend/issues"
+  },
+  "homepage": "https://github.com/LucasSeraggi/TFG-Backend#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
