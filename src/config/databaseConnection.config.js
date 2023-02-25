@@ -1,10 +1,15 @@
 const config = require('./db.config')
+const pgConn = {};
 
-config.database.connection.query('SELECT $1 AS value',)
-  .then((data) => {
-    console.log('DATA:', data.value)
-  })
-  .catch((error) => {
-    console.log('ERROR:', error)
-  })
-
+module.exports = {
+  
+  async dbConn () {
+    pgConn = await config.dbConnect()
+      .then((data) => {
+        console.log('Connection Successful')
+      })
+      .catch((error) => {
+        console.log('Connection Failure')
+      })
+  }
+}
