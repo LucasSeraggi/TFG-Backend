@@ -1,5 +1,5 @@
 const config = require('./db.config')
-const pgConn = {};
+let pgConn = {};
 
 module.exports = {
   
