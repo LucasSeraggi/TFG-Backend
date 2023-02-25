@@ -5,7 +5,7 @@ dotenv.config();
 
 module.exports = {
 
-  async dbConnect () {
+  async dbConnect() {
     const config = {
       host: process.env.DB_HOST,
       port: Number(process.env.DB_PORT),

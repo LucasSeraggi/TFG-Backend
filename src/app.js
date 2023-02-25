@@ -10,7 +10,7 @@ app.use(express.json())
 //app.use() bibliotecas que for usar (provavelmente as de login)
 
 // Banco de Dados
-app.set(databaseConnection.dbConn());
+//app.set(databaseConnection.dbConn());
 
 app.use(index);
 app.use('/api/user', userRoutes);

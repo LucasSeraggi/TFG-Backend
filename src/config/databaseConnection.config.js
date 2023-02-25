@@ -3,13 +3,10 @@ let pgConn = {};
 
 module.exports = {
   
-  async dbConn () {
-    pgConn = await config.dbConnect()
-      .then((data) => {
-        console.log('Connection Successful')
-      })
-      .catch((error) => {
-        console.log('Connection Failure')
-      })
+  async dbConn (query) {
+
+    pgConn = await config.dbConnect();
+    return pgConn.query(query);
+
   }
 }

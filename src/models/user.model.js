@@ -1,10 +1,41 @@
+const bcrypt = require('bcryptjs');
+const db = require('../config/databaseConnection.config');
 
 module.exports = class User {
-  constructor(name, email, password, date) {
-    this.name = name;
-    this.email = email;
-    this.password = password;
-    this.date = date || new Date();
+  User(body) {
+    this.body = body;
+  }
+
+  async save() {
+    this.body.password = await bcrypt.hash(user.password, 8)
+
+  }
+  async generateAuthToken() {
+    const user = this;
+    const token = jwt.sign({ _id: user._id, name: user.name, email: user.email }, 'secret');
+    user.tokens = user.tokens.concat({ token });
+    // await user.save();
+    return token;
+  }
+
+  static async find({ email }) {
+    const values = [email];
+    const query = {
+      text: `
+          SELECT *
+          FROM users
+          WHERE email = $1
+          Limit 1
+      `, values,
+    }
+    const result = await db.dbConn(query);
+    if (result.rowCount == 0) {
+      return false;
+    } else if (result.rowCount > 0) {
+      return true;
+    }
+
+    throw Exception('Error query')
   }
 }
 
