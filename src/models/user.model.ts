@@ -1,11 +1,67 @@
 // import bcrypt from 'bcryptjs';
 import db from '../config/databaseConnection.config';
+import { Request, Response } from "express";
 
 class User {
-  static async save() {
+  static async save(req: Request) {
     // this.body.password = await bcrypt.hash(user.password, 8)
+    const values = [
+      req.body.school_id,
+      req.body.class_id,
+      req.body.name,
+      req.body.registration,
+      req.body.birth_date,
+      req.body.position,
+      req.body.phone,
+      req.body.email,
+      req.body.cpf,
+      req.body.rg,
+      req.body.password,
+      req.body.profile_picture,
+      req.body.address,
+    ];
 
+    const queryInsertUser = {
+      text: `
+          INSERT INTO users (
+            school_id, class_id, name, registration, birth_date, position,
+            phone, email, cpf, rg, password, profile_picture, address
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+          RETURNING
+              id,
+              registration,
+              class_id,
+              name,
+              email
+      `,
+      values,
+    };
+
+    try {
+      const userCreate = await db.dbConn(queryInsertUser);
+      return userCreate;
+    } catch (err: any) {
+      console.log(err);
+      throw err;
+    }
   }
+
+  static async list() {
+    const querySelectUsers = {
+      text: `
+              SELECT * FROM users
+          `
+    }
+    try {
+      const users = await db.dbConn(querySelectUsers);
+      return users;
+    } catch (err: any) {
+      console.log(err);
+      throw err;
+    }
+  }
+
   static async generateAuthToken() {
     // const user = this;
     // const token = jwt.sign({ _id: user._id, name: user.name, email: user.email }, 'secret');
@@ -32,6 +88,48 @@ class User {
     }
 
     throw 'Error query';
+  }
+
+  static async find(req: Request) {
+    const values = [
+      req.query.cpf
+    ];
+    const querySelectUser = {
+      text: `
+                SELECT * FROM users u
+                where u.cpf = $1 
+            `,
+      values,
+    }
+    try {
+      const userFind = await db.dbConn(querySelectUser);
+      return userFind;
+    } catch (err: any) {
+      console.log(err);
+      throw err;
+    }
+  }
+
+  static async delete(req: Request) {
+    const values = [
+      req.query.cpf
+    ];
+    const queryDeleteUser = {
+      text: `
+                DELETE FROM users u
+                where u.cpf = $1
+                RETURNING
+                    name
+            `,
+      values,
+    }
+    try {
+      const userDelete = await db.dbConn(queryDeleteUser);
+      return userDelete;
+    } catch (err: any) {
+      console.log(err);
+      throw err;
+    }
   }
 }
 
