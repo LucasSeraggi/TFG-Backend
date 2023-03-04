@@ -1,8 +1,10 @@
-const express = require('express');
+import express from 'express';
 const router = express.Router();
 const auth = require('../middlewares/auth');
-/* const userController = require('../controllers/user.controllers');
 
+import UserController from '../controllers/user.controllers';
+
+/*
 //Registrar novo usuário
 router.post('/register', userController.registerNewUser);
 
@@ -11,5 +13,8 @@ router.post('/login', userController.loginUser);
 
 //Dados do usuário
 router.get('/userData', auth, userController.userProfile);
-*/ 
-module.exports = router;
+*/
+
+router.post('/register', UserController.registerNewUser);
+
+export = router;

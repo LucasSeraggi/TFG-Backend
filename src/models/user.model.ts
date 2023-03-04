@@ -1,24 +1,20 @@
-const bcrypt = require('bcryptjs');
-const db = require('../config/databaseConnection.config');
+// import bcrypt from 'bcryptjs';
+import db from '../config/databaseConnection.config';
 
-module.exports = class User {
-  User(body) {
-    this.body = body;
-  }
-
-  async save() {
-    this.body.password = await bcrypt.hash(user.password, 8)
+class User {
+  static async save() {
+    // this.body.password = await bcrypt.hash(user.password, 8)
 
   }
-  async generateAuthToken() {
-    const user = this;
-    const token = jwt.sign({ _id: user._id, name: user.name, email: user.email }, 'secret');
-    user.tokens = user.tokens.concat({ token });
-    // await user.save();
-    return token;
+  static async generateAuthToken() {
+    // const user = this;
+    // const token = jwt.sign({ _id: user._id, name: user.name, email: user.email }, 'secret');
+    // user.tokens = user.tokens.concat({ token });
+    // // await user.save();
+    // return token;
   }
 
-  static async find({ email }) {
+  static async findEmail(email: string) {
     const values = [email];
     const query = {
       text: `
@@ -35,9 +31,11 @@ module.exports = class User {
       return true;
     }
 
-    throw Exception('Error query')
+    throw 'Error query';
   }
 }
+
+export = User;
 
 /*
 CREATE TABLE IF NOT EXISTS users (
