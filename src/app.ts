@@ -22,4 +22,12 @@ app.use(UserRoutes);
 app.use(SchoolRoutes);
 app.use(ClassRoutes);
 
+// catch 404 and forward to error handler
+app.use(function (_, res, __) {
+  res.status(404).send({
+    status: 404,
+    message: 'Not Found',
+  });
+});
+
 export = app
