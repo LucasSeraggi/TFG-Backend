@@ -1,10 +1,10 @@
-const express = require('express');
-const databaseConnection = require('../config/databaseConnection.config');
+import express from 'express';
+import databaseConnection from '../config/databaseConnection.config';
+import User from '../models/user.model';
+
 const router = express.Router();
-const User = require('../models/user.model')
 
-
-router.get('/api', (_, res) => {
+router.get('/api', (_: any, res: any) => {
   res.status(200).send({
     success: true,
     message: 'Bem Vindo!',
@@ -12,7 +12,7 @@ router.get('/api', (_, res) => {
   });
 });
 
-router.get('/users', async (_, res) => {
+router.get('/users', async (_: any, res: any) => {
   const querySelectUsers = {
     text: `
             SELECT * FROM users
@@ -24,7 +24,7 @@ router.get('/users', async (_, res) => {
       success: true,
       message: users.rows
     });
-  } catch (err) {
+  } catch (err: any) {
     console.log(err);
     res.status(400).send({
       success: false,
@@ -33,9 +33,8 @@ router.get('/users', async (_, res) => {
   }
 })
 
-module.exports = router
 
-router.post('/school/register', async (req, res) => {
+router.post('/school/register', async (req: any, res: any) => {
   const values = [
     req.body.name,
     req.body.cnpj,
@@ -64,7 +63,7 @@ router.post('/school/register', async (req, res) => {
       message: `School ${schoolCreate.rows[0].name} created success. ID:${schoolCreate.rows[0].id}`,
       id: schoolCreate.rows[0].id,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error(err);
     res.status(400).send({
       success: false,
@@ -73,8 +72,10 @@ router.post('/school/register', async (req, res) => {
   }
 });
 
-router.get('/test', async (_, res) => {
-  let a = await User.find({ email: 'Jackson' })
+router.get('/test', async (_: any, res: any) => {
+  let a = await User.findEmail('Jackson')
   console.log(a);
   res.status(201).send({});
 });
+
+export = router;
