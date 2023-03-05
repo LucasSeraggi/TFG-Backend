@@ -1,28 +1,33 @@
 // import bcrypt from 'bcryptjs';
+import jwt from "jsonwebtoken";
 import db from '../config/databaseConnection.config';
-import { Request, Response } from "express";
+import { Request } from "express";
+import { UserJwt } from "../interface/user.interface";
+import bcrypt from 'bcryptjs';
 
 class User {
   static async save(req: Request) {
-    // this.body.password = await bcrypt.hash(user.password, 8)
-    const values = [
-      req.body.school_id,
-      req.body.class_id,
-      req.body.name,
-      req.body.registration,
-      req.body.birth_date,
-      req.body.position,
-      req.body.phone,
-      req.body.email,
-      req.body.cpf,
-      req.body.rg,
-      req.body.password,
-      req.body.profile_picture,
-      req.body.address,
-    ];
+    try {
+      req.body.password = await bcrypt.hash(req.body.password, 8);
 
-    const queryInsertUser = {
-      text: `
+      const values = [
+        req.body.school_id,
+        req.body.class_id,
+        req.body.name,
+        req.body.registration,
+        req.body.birth_date,
+        req.body.position,
+        req.body.phone,
+        req.body.email,
+        req.body.cpf,
+        req.body.rg,
+        req.body.password,
+        req.body.profile_picture,
+        req.body.address,
+      ];
+
+      const queryInsertUser = {
+        text: `
           INSERT INTO users (
             school_id, class_id, name, registration, birth_date, position,
             phone, email, cpf, rg, password, profile_picture, address
@@ -35,10 +40,9 @@ class User {
               name,
               email
       `,
-      values,
-    };
+        values,
+      };
 
-    try {
       const userCreate = await db.dbConn(queryInsertUser);
       return userCreate;
     } catch (err: any) {
@@ -62,12 +66,25 @@ class User {
     }
   }
 
-  static async generateAuthToken() {
-    // const user = this;
-    // const token = jwt.sign({ _id: user._id, name: user.name, email: user.email }, 'secret');
-    // user.tokens = user.tokens.concat({ token });
-    // // await user.save();
-    // return token;
+  static async generateAuthToken(user: UserJwt) {
+    const token = jwt.sign(user, 'secret');
+
+    return token;
+  }
+
+  static verifyToken(token: string): UserJwt | null {
+    try {
+      const info = jwt.verify(token, 'secret') as UserJwt;
+      const now = Date.now();
+
+      if (info.dateExp > now) {
+        return info;
+      }
+      return null;
+
+    } catch (_) {
+      return null;
+    }
   }
 
   static async findEmail(email: string) {

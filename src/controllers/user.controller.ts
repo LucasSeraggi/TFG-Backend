@@ -11,8 +11,14 @@ const registerNewUser = async (req: Request, res: Response) => {
         .json({ message: "E-mail já cadastrado!" });
     }
 
-    const userCreate = await User.save(req); // salvar no banco (antes criptografar senha)
-    const userToken = await User.generateAuthToken(); // gerar token de acesso (para login)
+    const userCreate = await User.save(req);
+    const userToken = await User.generateAuthToken({
+      userId: userCreate.rows[0].id,
+      schoolId: userCreate.rows[0].school_id,
+      email: userCreate.rows[0].email,
+      dateExp: Date.now() + (3600000 * 3), // 3 horas
+    });
+
     res.status(201).send({
       success: true,
       message: `User ${userCreate.rows[0].name} created successfully.`,
