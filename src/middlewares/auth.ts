@@ -1,36 +1,42 @@
 import { Request, Response } from "express";
 import User from "../models/user.model";
+import bcrypt from 'bcryptjs';
 
 const verifyToken = (req: Request, res: Response, next: any) => {
-    const token: string = req.headers.token?.toString() || '';
+    const token: string = req.headers.authorization?.toString() || '';
 
     if (req.headers['user-id']) {
         req.headers.userId = req.headers['user-id'];
         req.headers.schoolId = req.headers['school-id'];
-        req.headers.email = req.headers['email'];
         return next();
     }
 
     if (!token) {
-        return res.status(401).send({
+        res.status(401).send({
             message: "No token provided!",
         });
+        return false;
     }
 
     const info = User.verifyToken(token);
 
     if (info === null) {
-        return res.status(401).send({
+        res.status(401).send({
             message: "Unauthorized!",
         });
+        return false;
     }
-
+    
     req.headers.userId = info.userId.toString();
     req.headers.schoolId = info.schoolId?.toString();
     req.headers.email = info.email;
-    next();
-
+    
+    return true;
 };
+
+const validatePass = async (password: string, hash: string) => {
+    return await bcrypt.compareSync(password, hash); 
+}
 
 // const isAdmin = async (req: Request, res: Response, next: any) => {
 //     try {
@@ -60,4 +66,4 @@ const AuthJwt = {
     // isAdmin,
 };
 
-export = AuthJwt;
+export = { AuthJwt, validatePass, verifyToken };

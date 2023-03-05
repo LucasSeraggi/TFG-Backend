@@ -5,10 +5,12 @@ import { Request } from "express";
 import { UserJwt } from "../interface/user.interface";
 import bcrypt from 'bcryptjs';
 
+const SECRET = process.env.JWT_SECRET || "secret";
 class User {
   static async save(req: Request) {
     try {
-      req.body.password = await bcrypt.hash(req.body.password, 8);
+      const saltRounds = 10;
+      const passwordHash = await bcrypt.hash(req.body.password, saltRounds);
 
       const values = [
         req.body.school_id,
@@ -21,7 +23,7 @@ class User {
         req.body.email,
         req.body.cpf,
         req.body.rg,
-        req.body.password,
+        passwordHash,
         req.body.profile_picture,
         req.body.address,
       ];
@@ -67,14 +69,14 @@ class User {
   }
 
   static async generateAuthToken(user: UserJwt) {
-    const token = jwt.sign(user, 'secret');
+    const token = jwt.sign(user, SECRET);
 
     return token;
   }
 
   static verifyToken(token: string): UserJwt | null {
     try {
-      const info = jwt.verify(token, 'secret') as UserJwt;
+      const info = jwt.verify(token, SECRET) as UserJwt;
       const now = Date.now();
 
       if (info.dateExp > now) {
@@ -107,14 +109,14 @@ class User {
     throw 'Error query';
   }
 
-  static async find(req: Request) {
+  static async find(email: any) {
     const values = [
-      req.query.cpf
+      email
     ];
     const querySelectUser = {
       text: `
                 SELECT * FROM users u
-                where u.cpf = $1 
+                where u.email = $1 
             `,
       values,
     }

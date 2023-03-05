@@ -7,10 +7,8 @@ import userController from '../controllers/user.controller';
 //Registrar novo usuário
 router.post('/user/register', userController.registerNewUser);
 
-/*
 //Login de usuário
 router.post('/login', userController.loginUser);
-*/
 
 //Dados de todos os usuários
 router.get('/users', userController.listUsers); //add auth

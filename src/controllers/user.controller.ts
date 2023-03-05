@@ -1,6 +1,6 @@
 import User from '../models/user.model';
+import auth from '../middlewares/auth';
 import { Request, Response } from "express";
-
 
 const registerNewUser = async (req: Request, res: Response) => {
   try {
@@ -36,13 +36,53 @@ const registerNewUser = async (req: Request, res: Response) => {
   }
 };
 
+const loginUser = async (req: Request, res: Response) => {
+  try {
+    const user = req.body;
+
+    if (!user.email || !user.password) {
+      return res
+        .status(400)
+        .json({ error: "User email and password are required" });
+    }
+
+    const userDb = await User.find(user.email);
+
+    if (userDb.rowCount == 0) {
+      return res.status(401)
+        .json({ error: "Email not registered" });
+    }
+
+    const isValid = await auth.validatePass(user.password, userDb.rows[0].password);
+
+    if (!isValid) {
+      return res.status(401)
+        .json({ error: "Unauthorized" });
+    } else {
+      const token = await User.generateAuthToken({
+        userId: userDb.rows[0].id,
+        schoolId: userDb.rows[0].school_id,
+        email: userDb.rows[0].email,
+        dateExp: Date.now() + (3600000 * 3), // 3 horas
+      });
+      return res.json({ user, token });
+    }
+  }
+  catch (error: any) {
+    return res.status(400).json({ error: error.message });
+  }
+}
+
 const listUsers = async (req: Request, res: Response) => {
   try {
-    const users = await User.list();
-    res.status(200).send({
-      success: true,
-      message: users.rows
-    });
+    const isValid = await auth.verifyToken(req, res, null);
+    if (isValid) {
+      const users = await User.list();
+      res.status(200).send({
+        success: true,
+        message: users.rows
+      });
+    }
   } catch (err) {
     res.status(400).send({
       success: false,
@@ -53,11 +93,14 @@ const listUsers = async (req: Request, res: Response) => {
 
 const userProfile = async (req: Request, res: Response) => {
   try {
-    const userProfile = await User.find(req);
-    res.status(200).send({
-      success: true,
-      message: userProfile.rows
-    });
+    const isValid = await auth.verifyToken(req, res, null);
+    if (isValid) {
+      const userProfile = await User.find(req.query.email);
+      res.status(200).send({
+        success: true,
+        message: userProfile.rows
+      });
+    }
   } catch (err) {
     res.status(400).send({
       success: false,
@@ -68,11 +111,14 @@ const userProfile = async (req: Request, res: Response) => {
 
 const userDelete = async (req: Request, res: Response) => {
   try {
-    const deleteUser = await User.delete(req);
-    res.status(200).send({
-      success: true,
-      message: `User ${deleteUser.rows[0].name} deleted successfully.`
-    });
+    const isValid = await auth.verifyToken(req, res, null);
+    if (isValid) {
+      const deleteUser = await User.delete(req);
+      res.status(200).send({
+        success: true,
+        message: `User ${deleteUser.rows[0].name} deleted successfully.`
+      });
+    }
   } catch (err) {
     res.status(400).send({
       success: false,
@@ -81,6 +127,6 @@ const userDelete = async (req: Request, res: Response) => {
   }
 }
 
-const UserController = { registerNewUser, listUsers, userProfile, userDelete }
+const UserController = { registerNewUser, listUsers, userProfile, userDelete, loginUser }
 
 export = UserController;
