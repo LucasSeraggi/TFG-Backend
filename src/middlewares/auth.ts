@@ -16,7 +16,7 @@ import jwt from "jsonwebtoken";
 
 
 const verifyToken = (req: Request, res: Response, next: any) => {
-    let token: string = req.headers.token?.toString() || '';
+    const token: string = req.headers.token?.toString() || '';
 
     if (!token) {
         return res.status(403).send({
