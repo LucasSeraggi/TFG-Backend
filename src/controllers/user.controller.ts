@@ -1,5 +1,4 @@
 import User from '../models/user.model';
-import auth from '../middlewares/auth';
 import { Request, Response } from "express";
 
 const registerNewUser = async (req: Request, res: Response) => {
@@ -53,7 +52,7 @@ const loginUser = async (req: Request, res: Response) => {
         .json({ error: "Email not registered" });
     }
 
-    const isValid = await auth.validatePass(user.password, userDb.rows[0].password);
+    const isValid = await User.validatePass(user.password, userDb.rows[0].password);
 
     if (!isValid) {
       return res.status(401)
@@ -73,16 +72,13 @@ const loginUser = async (req: Request, res: Response) => {
   }
 }
 
-const listUsers = async (req: Request, res: Response) => {
+const listUsers = async (_: Request, res: Response) => {
   try {
-    const isValid = await auth.verifyToken(req, res, null);
-    if (isValid) {
-      const users = await User.list();
-      res.status(200).send({
-        success: true,
-        message: users.rows
-      });
-    }
+    const users = await User.list();
+    res.status(200).send({
+      success: true,
+      message: users.rows
+    });
   } catch (err) {
     res.status(400).send({
       success: false,
@@ -93,14 +89,11 @@ const listUsers = async (req: Request, res: Response) => {
 
 const userProfile = async (req: Request, res: Response) => {
   try {
-    const isValid = await auth.verifyToken(req, res, null);
-    if (isValid) {
-      const userProfile = await User.find(req.query.email);
-      res.status(200).send({
-        success: true,
-        message: userProfile.rows
-      });
-    }
+    const userProfile = await User.find(req.query.email);
+    res.status(200).send({
+      success: true,
+      message: userProfile.rows
+    });
   } catch (err) {
     res.status(400).send({
       success: false,
@@ -111,14 +104,11 @@ const userProfile = async (req: Request, res: Response) => {
 
 const userDelete = async (req: Request, res: Response) => {
   try {
-    const isValid = await auth.verifyToken(req, res, null);
-    if (isValid) {
-      const deleteUser = await User.delete(req);
-      res.status(200).send({
-        success: true,
-        message: `User ${deleteUser.rows[0].name} deleted successfully.`
-      });
-    }
+    const deleteUser = await User.delete(req);
+    res.status(200).send({
+      success: true,
+      message: `User ${deleteUser.rows[0].name} deleted successfully.`
+    });
   } catch (err) {
     res.status(400).send({
       success: false,

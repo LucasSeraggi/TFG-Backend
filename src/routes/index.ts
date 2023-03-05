@@ -1,10 +1,10 @@
-import express from 'express';
+import express, { Response } from 'express';
 import { verifyToken } from '../middlewares/auth';
 
 const router = express.Router();
 
-router.get('/api', (_: any, res: any) => {
-  res.status(200).send({
+router.get('/api', (_: any, res: Response) => {
+  res.status(200).json({
     success: true,
     message: 'Bem Vindo!',
     version: '1.0.0',

@@ -1,19 +1,15 @@
 import Class from '../models/class.model';
-import auth from '../middlewares/auth';
 import { Request, Response } from "express";
 
 
 const registerNewClass = async (req: Request, res: Response) => {
   try {
-    const isValid = await auth.verifyToken(req, res, null);
-    if (isValid) {
-      const classCreate = await Class.save(req);
-      res.status(201).send({
-        success: true,
-        message: `Class ${classCreate.rows[0].name} created successfully.}`,
-        id: classCreate.rows[0].id,
-      });
-    }
+    const classCreate = await Class.save(req);
+    res.status(201).send({
+      success: true,
+      message: `Class ${classCreate.rows[0].name} created successfully.}`,
+      id: classCreate.rows[0].id,
+    });
   } catch (err) {
     res.status(400).send({
       success: false,
@@ -22,16 +18,13 @@ const registerNewClass = async (req: Request, res: Response) => {
   }
 };
 
-const listClasses = async (req: Request, res: Response) => {
+const listClasses = async (_: Request, res: Response) => {
   try {
-    const isValid = await auth.verifyToken(req, res, null);
-    if (isValid) {
-      const classes = await Class.list();
-      res.status(200).send({
-        success: true,
-        message: classes.rows
-      });
-    }
+    const classes = await Class.list();
+    res.status(200).send({
+      success: true,
+      message: classes.rows
+    });
   } catch (err) {
     res.status(400).send({
       success: false,
@@ -42,14 +35,11 @@ const listClasses = async (req: Request, res: Response) => {
 
 const classProfile = async (req: Request, res: Response) => {
   try {
-    const isValid = await auth.verifyToken(req, res, null);
-    if (isValid) {
-      const classProfile = await Class.find(req);
-      res.status(200).send({
-        success: true,
-        message: classProfile.rows
-      });
-    }
+    const classProfile = await Class.find(req);
+    res.status(200).send({
+      success: true,
+      message: classProfile.rows
+    });
   } catch (err) {
     res.status(400).send({
       success: false,
@@ -60,14 +50,11 @@ const classProfile = async (req: Request, res: Response) => {
 
 const classDelete = async (req: Request, res: Response) => {
   try {
-    const isValid = await auth.verifyToken(req, res, null);
-    if (isValid) {
-      const deleteClass = await Class.delete(req);
-      res.status(200).send({
-        success: true,
-        message: `Class ${deleteClass.rows[0].name} deleted successfully.`
-      });
-    }
+    const deleteClass = await Class.delete(req);
+    res.status(200).send({
+      success: true,
+      message: `Class ${deleteClass.rows[0].name} deleted successfully.`
+    });
   } catch (err) {
     res.status(400).send({
       success: false,
