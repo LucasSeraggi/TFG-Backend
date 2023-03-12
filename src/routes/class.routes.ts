@@ -5,15 +5,15 @@ import { verifyToken } from '../middlewares/auth';
 const router = express.Router();
 
 //Registrar nova classe
-router.post('/class/register', [verifyToken], classController.registerNewClass);
+router.post('/api/class/register', [verifyToken], classController.registerNewClass);
 
 //Dados de todas as classes
-router.get('/classes', [verifyToken], classController.listClasses); //add auth
+router.get('/api/classes', [verifyToken], classController.listClasses); //add auth
 
 //Dados da classe
-router.get('/classData', [verifyToken], classController.classProfile);
+router.get('/api/classData', [verifyToken], classController.classProfile);
 
 //Excluir class
-router.delete('/class/delete', [verifyToken], classController.classDelete);
+router.delete('/api/class/delete', [verifyToken], classController.classDelete);
 
 export = router;
