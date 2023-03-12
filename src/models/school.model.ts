@@ -1,5 +1,5 @@
 import db from '../config/databaseConnection.config';
-import { Request, Response } from "express";
+import { Request } from "express";
 
 class School {
     static async save(req: Request) {

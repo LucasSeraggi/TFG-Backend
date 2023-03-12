@@ -18,7 +18,7 @@ const registerNewClass = async (req: Request, res: Response) => {
   }
 };
 
-const listClasses = async (req: Request, res: Response) => {
+const listClasses = async (_: Request, res: Response) => {
   try {
     const classes = await Class.list();
     res.status(200).send({

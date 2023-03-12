@@ -1,7 +1,6 @@
 import School from '../models/school.model';
 import { Request, Response } from "express";
 
-
 const registerNewSchool = async (req: Request, res: Response) => {
   try {
     const schoolCreate = await School.save(req);
@@ -18,7 +17,7 @@ const registerNewSchool = async (req: Request, res: Response) => {
   }
 };
 
-const listSchools = async (req: Request, res: Response) => {
+const listSchools = async (_: Request, res: Response) => {
   try {
     const schools = await School.list();
     res.status(200).send({
