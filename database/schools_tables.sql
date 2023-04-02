@@ -1,14 +1,3 @@
-CREATE TYPE ENUM_USERS_POSITION AS ENUM (
-    'teacher',
-    'student'
-);
-
-CREATE TYPE ENUM_ACTIVITIES_TYPE AS ENUM (
-    'quiz',
-    'dissertation',
-    'fill_the_blanks'
-);
-
 DROP TABLE IF EXISTS schools;
 
 CREATE TABLE IF NOT EXISTS schools (
@@ -23,7 +12,9 @@ CREATE TABLE IF NOT EXISTS schools (
     password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    PRIMARY KEY (id)
+
+    CONSTRAINT schools_pkey PRIMARY KEY (id),
+    CONSTRAINT unique_email UNIQUE (email)
 );
 
 DROP TABLE IF EXISTS classes;

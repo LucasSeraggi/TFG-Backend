@@ -17,7 +17,7 @@ class User {
         req.body.name,
         req.body.registration,
         req.body.birth_date,
-        req.body.position,
+        req.body.role,
         req.body.phone,
         req.body.email,
         req.body.cpf,
@@ -30,7 +30,7 @@ class User {
       const queryInsertUser = {
         text: `
           INSERT INTO users (
-            school_id, class_id, name, registration, birth_date, position,
+            school_id, class_id, name, registration, birth_date, role,
             phone, email, cpf, rg, password, profile_picture, address
           )
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
@@ -75,21 +75,6 @@ class User {
     const token = jwt.sign(user, SECRET);
 
     return token;
-  }
-
-  static verifyToken(token: string): UserJwt | null {
-    try {
-      const info = jwt.verify(token, SECRET) as UserJwt;
-      const now = Date.now();
-
-      if (info.dateExp > now) {
-        return info;
-      }
-      return null;
-
-    } catch (_) {
-      return null;
-    }
   }
 
   static async findEmail(email: string) {

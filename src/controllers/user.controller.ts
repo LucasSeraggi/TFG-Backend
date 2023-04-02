@@ -15,7 +15,6 @@ const registerNewUser = async (req: Request, res: Response) => {
       userId: userCreate.rows[0].id,
       schoolId: userCreate.rows[0].school_id,
       email: userCreate.rows[0].email,
-      dateExp: Date.now() + (3600000 * 3), // 3 horas
     });
 
     res.status(201).send({
@@ -58,13 +57,16 @@ const loginUser = async (req: Request, res: Response) => {
       return res.status(401)
         .json({ error: "Unauthorized" });
     } else {
-      const token = await User.generateAuthToken({
+      const userInfo = {
         userId: userDb.rows[0].id,
         schoolId: userDb.rows[0].school_id,
         email: userDb.rows[0].email,
-        dateExp: Date.now() + (3600000 * 3), // 3 horas
+      };
+      const token = await User.generateAuthToken(userInfo);
+      return res.json({
+        ...userInfo,
+        token,
       });
-      return res.json({ user, token });
     }
   }
   catch (error: any) {
