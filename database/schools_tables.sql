@@ -55,13 +55,13 @@ DROP TABLE IF EXISTS subjects;
 
 CREATE TABLE IF NOT EXISTS subjects (
     id SERIAL NOT NULL,
-    school_id INT NOT NULL,
+    school_id INT NOT NULL REFERENCES schools (id),
+    teacher_id INT NOT NULL REFERENCES users (id),
+    classe_id INT NOT NULL (classe_id) REFERENCES classes (id),
     name VARCHAR(255) NOT NULL,
-    students INT ARRAY,
-    teacher INT,
-    period VARCHAR(10) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+
     PRIMARY KEY (id)
 );
 

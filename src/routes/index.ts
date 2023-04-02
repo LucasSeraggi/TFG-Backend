@@ -4,7 +4,7 @@ import { verifyToken } from '../middlewares/auth';
 const router = express.Router();
 
 router.all('*', (req: Request, __: Response, next: any) => {
-  console.info('\n\n' + req.originalUrl);
+  console.info('\n\n' + req.method + ':' + req.originalUrl);
   next();
 });
 

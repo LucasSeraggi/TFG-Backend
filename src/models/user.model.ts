@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import db from '../config/databaseConnection.config';
 import { Request } from "express";
-import { UserJwt } from "../interface/user.interface";
+import { TokenJwt } from "../interface/global.interface";
 import bcrypt from 'bcryptjs';
 
 const SECRET = process.env.JWT_SECRET || "secret";
@@ -71,7 +71,7 @@ class User {
     return bcrypt.compareSync(password, hash);
   }
 
-  static async generateAuthToken(user: UserJwt) {
+  static async generateAuthToken(user: TokenJwt) {
     const token = jwt.sign(user, SECRET);
 
     return token;
