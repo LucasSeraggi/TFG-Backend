@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/class/register', [verifyToken], classController.registerNewClass);
 
 //Dados de todas as classes
-router.get('/classes', [verifyToken], classController.listClasses); //add auth
+router.get('/classes', classController.listClasses); //add auth
 
 //Dados da classe
 router.get('/classData', [verifyToken], classController.classProfile);

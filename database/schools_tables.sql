@@ -1,7 +1,13 @@
-CREATE TYPE ENUM_USERS_POSITION AS ENUM (
-    'teacher',
-    'student'
+DROP TYPE IF EXISTS ENUM_USERS_ROLE CASCADE;
+
+CREATE TYPE ENUM_USERS_ROLE AS ENUM (
+    'Administrador',
+    'Estudante',
+    'Professor',
+    'Tutor'
 );
+
+DROP TYPE IF EXISTS ENUM_ACTIVITIES_TYPE CASCADE;
 
 CREATE TYPE ENUM_ACTIVITIES_TYPE AS ENUM (
     'quiz',
@@ -42,8 +48,8 @@ CREATE TABLE IF NOT EXISTS users (
     class_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     registration VARCHAR(10) NOT NULL,
-    birth_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    position ENUM_USERS_POSITION NOT NULL,
+    birth_date DATE NOT NULL,
+    role ENUM_USERS_ROLE NOT NULL,
     phone VARCHAR(20) NOT NULL,
     email VARCHAR(255) NOT NULL,
     cpf VARCHAR(14) NOT NULL,

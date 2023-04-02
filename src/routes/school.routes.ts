@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/school/register', schoolController.registerNewSchool);
 
 //Dados de todas as escolas
-router.get('/schools', [verifyToken], schoolController.listSchools); //add auth
+router.get('/schools', schoolController.listSchools); //add auth
 
 //Dados da escola
 router.get('/schoolData', [verifyToken], schoolController.schoolProfile);

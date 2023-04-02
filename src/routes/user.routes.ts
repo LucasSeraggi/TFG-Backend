@@ -8,7 +8,7 @@ const router = express.Router();
 router.post('/user/register', userController.registerNewUser);
 
 //Login de usuário
-router.post('/login', userController.loginUser);
+router.post('/user/login', userController.loginUser);
 
 //Dados de todos os usuários
 router.get('/users', [verifyToken], userController.listUsers); //add auth
