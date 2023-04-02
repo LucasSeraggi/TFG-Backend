@@ -77,21 +77,6 @@ class User {
     return token;
   }
 
-  static verifyToken(token: string): UserJwt | null {
-    try {
-      const info = jwt.verify(token, SECRET) as UserJwt;
-      const now = Date.now();
-
-      if (info.dateExp > now) {
-        return info;
-      }
-      return null;
-
-    } catch (_) {
-      return null;
-    }
-  }
-
   static async findEmail(email: string) {
     const values = [email];
     const query = {

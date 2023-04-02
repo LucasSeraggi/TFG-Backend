@@ -5,15 +5,18 @@ import { verifyToken } from '../middlewares/auth';
 const router = express.Router();
 
 //Registrar nova escola
-router.post('/school/register', schoolController.registerNewSchool);
+router.post('/api/school/register', schoolController.registerNewSchool);
+
+// Login 
+router.post('/api/school/login', schoolController.login);
 
 //Dados de todas as escolas
-router.get('/schools', schoolController.listSchools); //add auth
+router.get('/api/schools', [verifyToken], schoolController.listSchools); //add auth
 
-//Dados da escola
-router.get('/schoolData', [verifyToken], schoolController.schoolProfile);
+// //Dados da escola
+// router.get('/api/schoolData', [verifyToken], schoolController.schoolProfile);
 
 //Excluir escola
-router.delete('/school/delete', [verifyToken], schoolController.schoolDelete);
+router.delete('/api/school/delete', [verifyToken], schoolController.schoolDelete);
 
 export = router;

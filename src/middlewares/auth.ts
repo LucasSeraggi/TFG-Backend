@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
-import User from "../models/user.model";
-import bcrypt from 'bcryptjs';
+import jwt from "jsonwebtoken";
+import { UserJwt } from "../interface/user.interface";
+
+const SECRET = process.env.JWT_SECRET || "secret";
 
 const verifyToken = (req: Request, res: Response, next: any) => {
     const token: string = req.headers.authorization || '';
@@ -17,16 +19,19 @@ const verifyToken = (req: Request, res: Response, next: any) => {
         });
     }
 
-    const info = User.verifyToken(token);
+    const info = jwt.verify(token, SECRET) as UserJwt;
+    const lastTimeOk = (Date.now() / 1000) - (3600 * 3); // 3 horas
 
-    if (info === null) {
+    if (!info || !info.iat || info.iat < lastTimeOk) {
         return res.status(401).send({
             message: "Unauthorized!",
         });
     }
+    console.log(info);
 
-    req.headers.userId = info.userId.toString();
+    req.headers.userId = info.userId?.toString();
     req.headers.schoolId = info.schoolId?.toString();
+    req.headers.iat = info.iat?.toString();
     req.headers.email = info.email;
 
     return next();

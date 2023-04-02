@@ -11,14 +11,16 @@ router.get('/api', (_: any, res: Response) => {
   });
 });
 
-router.get('/this', [verifyToken], async (req: any, res: any) => {
+router.get('/api/this', [verifyToken], async (req: any, res: any) => {
 
   try {
     return res.status(201).send({
-      req: req.headers,
       userId: req.headers.userId,
       schoolId: req.headers.schoolId,
       email: req.headers.email,
+      iat: req.headers.iat,
+      now: (Date.now() / 1000).toFixed(0),
+      req: req.headers,
     });
   } catch (error) {
     return res.status(400).send({ error: error });

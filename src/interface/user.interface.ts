@@ -1,8 +1,7 @@
 interface UserJwt {
-  userId: number;
-  schoolId?: number;
+  userId?: number;
+  schoolId: number;
   email: string;
-  dateExp: number;
   iat?: number;
 }
 
