@@ -27,7 +27,7 @@ const verifyToken = (req: Request, res: Response, next: any) => {
             message: "Unauthorized!",
         });
     }
-    console.log(info);
+    console.info(info);
 
     req.headers.userId = info.userId?.toString();
     req.headers.schoolId = info.schoolId?.toString();
