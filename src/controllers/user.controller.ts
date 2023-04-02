@@ -107,10 +107,17 @@ const userProfile = async (req: Request, res: Response) => {
 const userDelete = async (req: Request, res: Response) => {
   try {
     const deleteUser = await User.delete(req);
-    res.status(200).send({
-      success: true,
-      message: `User ${deleteUser.rows[0].name} deleted successfully.`
-    });
+    if(deleteUser.rowCount != 0){
+      res.status(200).send({
+        success: true,
+        message: `User ${deleteUser.rows[0].name} deleted successfully.`
+      });
+    } else {
+      res.status(404).send({
+        success: false,
+        message: `User not found`
+      });
+    }
   } catch (err) {
     res.status(400).send({
       success: false,
