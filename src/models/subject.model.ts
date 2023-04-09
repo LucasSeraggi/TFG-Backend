@@ -6,15 +6,15 @@ export class Subject implements SubjectType {
   id?: number;
   schoolId: number;
   teacherId: number;
-  classeId: number;
+  classId: number;
   name: string;
   createdAt?: Date;
   updatedAt?: Date;
 
-  constructor({ schoolId, teacherId, name, createdAt, updatedAt, id, classeId }: SubjectType) {
+  constructor({ schoolId, teacherId, name, createdAt, updatedAt, id, classId: classeId }: SubjectType) {
     this.schoolId = schoolId;
     this.teacherId = teacherId;
-    this.classeId = classeId;
+    this.classId = classeId;
     this.name = name;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
@@ -25,7 +25,7 @@ export class Subject implements SubjectType {
     return new Subject({
       schoolId: rowDb.school_id,
       teacherId: rowDb.teacher_id,
-      classeId: rowDb.classe_id,
+      classId: rowDb.class_id,
       name: rowDb.name,
       createdAt: rowDb.created_at,
       updatedAt: rowDb.updated_at,
@@ -37,13 +37,13 @@ export class Subject implements SubjectType {
     const values = [
       this.schoolId,
       this.teacherId,
-      this.classeId,
+      this.classId,
       this.name,
     ];
     const query = {
       text: `
                 INSERT INTO subjects (
-                    school_id, teacher_id, classe_id, name
+                    school_id, teacher_id, class_id, name
                 )
                 VALUES ($1, $2, $3, $4)
                 RETURNING id
@@ -87,14 +87,14 @@ export class Subject implements SubjectType {
     }
   }
 
-  static async find({ classeId, schoolId, name, teacherId }: SubjectTypeEmpty): Promise<Subject[]> {
+  static async find({ classId, schoolId, name, teacherId }: SubjectTypeEmpty): Promise<Subject[]> {
     const query = {
       text: `
               SELECT * FROM subjects
               WHERE 
-                ${classeId ? `classe_id = ${classeId} AND` : ''}
+                ${classId ? `class_id = ${classId} AND` : ''}
                 ${teacherId ? `teacher_id = ${teacherId} AND` : ''}
-                ${name ? `name = ${name} AND` : ''}
+                ${name ? `name ILIKE '%${name}%' AND` : ''}
                 school_id = ${schoolId}
           `,
     }
@@ -115,7 +115,7 @@ export class Subject implements SubjectType {
     }
   }
 
-  static async remove(id: number, school_id: number): Promise<any> {
+  static async remove(id: number, school_id: number): Promise<number> {
     const values = [id, school_id];
     const query = {
       text: `
@@ -128,7 +128,8 @@ export class Subject implements SubjectType {
     }
 
     try {
-      await db.dbConn(query);
+      let response = await db.dbConn(query);
+      return response.rowCount;
     } catch (err: any) {
       console.error(err);
       throw err.detail;
@@ -139,7 +140,7 @@ export class Subject implements SubjectType {
     const values = [
       this.schoolId,
       this.teacherId,
-      this.classeId,
+      this.classId,
       this.name,
       this.id,
     ];
@@ -148,7 +149,7 @@ export class Subject implements SubjectType {
                 UPDATE subjects
                   SET
                       teacher_id = $2,
-                      classe_id = $3,
+                      class_id = $3,
                       name = $4,
                       updated_at = NOW() 
                 WHERE id = $5 AND school_id = $1

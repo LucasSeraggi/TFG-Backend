@@ -21,9 +21,8 @@ DROP TABLE IF EXISTS classes;
 
 CREATE TABLE IF NOT EXISTS classes (
     id SERIAL NOT NULL,
+    school_id INT NOT NULL REFERENCES schools (id),
     name VARCHAR(255) NOT NULL,
-    school_id INT NOT NULL,
-    users INT ARRAY,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     PRIMARY KEY (id)
@@ -57,7 +56,7 @@ CREATE TABLE IF NOT EXISTS subjects (
     id SERIAL NOT NULL,
     school_id INT NOT NULL REFERENCES schools (id),
     teacher_id INT NOT NULL REFERENCES users (id),
-    classe_id INT NOT NULL (classe_id) REFERENCES classes (id),
+    class_id INT NOT NULL REFERENCES classes (id),
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,

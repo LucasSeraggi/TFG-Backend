@@ -13,7 +13,7 @@ const register = async (req: Request, res: Response) => {
     const subject = new Subject({
       schoolId: Number(req.headers.schoolId),
       teacherId: req.body.teacherId,
-      classeId: req.body.classeId,
+      classId: req.body.classeId,
       name: req.body.name,
     });
 
@@ -21,7 +21,7 @@ const register = async (req: Request, res: Response) => {
 
     res.status(201).send({
       success: true,
-      message: `Subject ${subject.name} created with successfully.`,
+      message: `Subject '${subject.name}' created with successfully.`,
       id: subject.id,
     });
   } catch (err) {
@@ -34,8 +34,7 @@ const register = async (req: Request, res: Response) => {
 
 const update = async (req: Request, res: Response) => {
   try {
-
-    if (!req.body.id && !req.params.id)
+    if (!req.body.id)
       return res.status(400).send({ message: 'Subject id is required.' });
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
@@ -43,19 +42,22 @@ const update = async (req: Request, res: Response) => {
 
 
     const subject = new Subject({
-      id: req.body.id || req.params.id,
+      id: req.body.id,
       schoolId: Number(req.headers.schoolId),
       teacherId: req.body.teacherId,
-      classeId: req.body.classeId,
+      classId: req.body.classeId,
       name: req.body.name,
     });
 
-    await subject.update();
+    const rowUpdated = await subject.update();
 
-    res.status(201).send({
-      success: true,
-      message: `Subject ${subject.name} created with successfully.`,
-      id: subject.id,
+    if (rowUpdated == 0) {
+      return res.status(404).send({
+        message: 'Subject not found.'
+      });
+    }
+    return res.status(200).send({
+      message: 'Subject updated with successfully.'
     });
   } catch (err) {
     res.status(400).send({
@@ -88,7 +90,7 @@ const find = async (req: Request, res: Response) => {
   try {
     const subject = await Subject.find({
       schoolId: Number(req.headers.schoolId),
-      classeId: req.query.class_id ? Number(req.query.class_id) : undefined,
+      classId: req.query.class_id ? Number(req.query.class_id) : undefined,
       teacherId: req.query.teacher_id ? Number(req.query.teacher_id) : undefined,
       name: req.query.name ? String(req.query.name) : undefined,
     });
@@ -107,14 +109,18 @@ const find = async (req: Request, res: Response) => {
 
 const remove = async (req: Request, res: Response) => {
   try {
-    const subject = await Subject.remove(
+    const rowRemoved = await Subject.remove(
       Number(req.params.id),
       Number(req.headers.schoolId)
     );
 
-    if (subject) return res.status(200).send(subject);
-    res.status(404).send({
-      message: 'Subject not found.'
+    if (rowRemoved == 0) {
+      return res.status(404).send({
+        message: 'Subject not found.'
+      });
+    }
+    return res.status(200).send({
+      message: 'Subject removed with successfully.'
     });
   } catch (err) {
     res.status(400).send({
