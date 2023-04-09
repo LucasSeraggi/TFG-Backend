@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import Subject from "../models/subject.model";
+import { Subject } from "../models/subject.model";
 
 
 
@@ -7,7 +7,7 @@ const register = async (req: Request, res: Response) => {
   try {
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
-      return res.status(400).send({ message: 'School id not match.' });
+      return res.status(401).send({ message: 'School id not match with user.' });
 
 
     const subject = new Subject({
@@ -39,7 +39,7 @@ const update = async (req: Request, res: Response) => {
       return res.status(400).send({ message: 'Subject id is required.' });
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
-      return res.status(400).send({ message: 'School id not match.' });
+      return res.status(401).send({ message: 'School id not match with user.' });
 
 
     const subject = new Subject({
@@ -73,7 +73,7 @@ const get = async (req: Request, res: Response) => {
     );
 
     if (subject) return res.status(200).send(subject);
-    res.status(400).send({
+    res.status(404).send({
       message: 'Subject not found.'
     });
   } catch (err) {
@@ -94,7 +94,7 @@ const find = async (req: Request, res: Response) => {
     });
     console.log(subject);
     if (subject && subject.length > 0) return res.status(200).send(subject);
-    res.status(400).send({
+    res.status(404).send({
       message: 'Subject not found.'
     });
   } catch (err) {
@@ -113,7 +113,7 @@ const remove = async (req: Request, res: Response) => {
     );
 
     if (subject) return res.status(200).send(subject);
-    res.status(400).send({
+    res.status(404).send({
       message: 'Subject not found.'
     });
   } catch (err) {

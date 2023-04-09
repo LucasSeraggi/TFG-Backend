@@ -2,7 +2,7 @@ import db from '../config/databaseConnection.config';
 import { SubjectType, SubjectTypeEmpty } from '../interface/subject.interface';
 
 
-class Subject implements SubjectType {
+export class Subject implements SubjectType {
   id?: number;
   schoolId: number;
   teacherId: number;
@@ -31,19 +31,6 @@ class Subject implements SubjectType {
       updatedAt: rowDb.updated_at,
       id: rowDb.id,
     });
-  }
-
-  toMap(): {} {
-    return {
-      id: this.id,
-      schoolId: this.schoolId,
-      teacherId: this.teacherId,
-      classeId: this.classeId,
-      name: this.name,
-      createdAt: this.createdAt,
-      updatedAt: this.updatedAt,
-      test: 'test',
-    }
   }
 
   async save(): Promise<string> {
@@ -178,5 +165,3 @@ class Subject implements SubjectType {
     }
   }
 }
-
-export = Subject;
