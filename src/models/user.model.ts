@@ -1,11 +1,128 @@
 import jwt from "jsonwebtoken";
 import db from '../config/databaseConnection.config';
 import { Request } from "express";
-import { UserJwt } from "../interface/user.interface";
+import { TokenJwt } from "../interface/global.interface";
 import bcrypt from 'bcryptjs';
+import { UserType, UserTypeEmpty } from "../interface/user.interface";
+import { UserRole } from "../interface/user_role.enum";
 
 const SECRET = process.env.JWT_SECRET || "secret";
-class User {
+
+class User implements UserType {
+  name: string;
+  schoolId: number;
+  classId: number;
+  registration: string;
+  birth_date: Date;
+  role: UserRole;
+  phone: string;
+  email: string;
+  cpf: string;
+  rg: string;
+  password?: string;
+  profile_picture?: {}
+  address?: string;
+
+  constructor({ name, schoolId, classId, registration, birth_date, role, phone, email, cpf, rg, profile_picture, address }: UserType) {
+    this.name = name;
+    this.schoolId = schoolId;
+    this.classId = classId;
+    this.registration = registration;
+    this.birth_date = birth_date;
+    this.role = role;
+    this.phone = phone;
+    this.email = email;
+    this.cpf = cpf;
+    this.rg = rg;
+    this.profile_picture = profile_picture;
+    this.address = address;
+  }
+
+  static createByDb(rowDb: any): User {
+    return new User({
+      name: rowDb.name,
+      schoolId: rowDb.school_id,
+      classId: rowDb.class_id,
+      registration: rowDb.registration,
+      birth_date: rowDb.birth_date,
+      role: rowDb.role,
+      phone: rowDb.phone,
+      email: rowDb.email,
+      cpf: rowDb.cpf,
+      rg: rowDb.rg,
+      profile_picture: rowDb.profile_picture,
+      address: rowDb.address,
+    });
+  }
+
+  get toResume(): object {
+    // Não possui dados sensíveis
+    return {
+      name: this.name,
+      registration: this.registration,
+      phone: this.phone,
+      email: this.email,
+      profile_picture: this.profile_picture,
+    };
+  }
+
+  static async get(id: number, school_id: number): Promise<User | null> {
+    const values = [id, school_id];
+    const query = {
+      text: `
+              SELECT * FROM users
+              WHERE 
+                id = $1 AND
+                school_id = $2
+          `,
+      values,
+    }
+
+    try {
+      const row = await db.dbConn(query);
+
+      if (row.rows.length == 1) {
+        return User.createByDb(row.rows[0]);
+      }
+      return null;
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail;
+    }
+  }
+
+  static async find({ classId, name, email, registration, schoolId, role }: UserTypeEmpty): Promise<User[]> {
+    const query = {
+      text: `
+              SELECT * FROM users
+              WHERE 
+                ${classId ? `class_id = ${classId} AND` : ''}
+                ${email ? `teacher_id = '${email}' AND` : ''}
+                ${registration ? `teacher_id = '${registration}' AND` : ''}
+                ${role ? `role = '${role}' AND` : ''}
+                ${name ? `name ILIKE '%${name}%' AND` : ''}
+                school_id = ${schoolId}
+          `,
+    }
+
+    try {
+      const rows = await db.dbConn(query);
+      if (!rows || rows.rows.length == 0) return [];
+
+      const subjects: User[] = [];
+      for (const iterator of rows.rows) {
+        subjects.push(User.createByDb(iterator));
+      }
+
+      return subjects;
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail;
+    }
+  }
+
+
+  // Older code ----------------------------------------------------------------------
   static async save(req: Request) {
     try {
       const saltRounds = 10;
@@ -71,7 +188,7 @@ class User {
     return bcrypt.compareSync(password, hash);
   }
 
-  static async generateAuthToken(user: UserJwt) {
+  static async generateAuthToken(user: TokenJwt) {
     const token = jwt.sign(user, SECRET);
 
     return token;
@@ -97,7 +214,7 @@ class User {
     throw 'Error query';
   }
 
-  static async find(email: any) {
+  static async findOld(email: any) {
     const values = [
       email
     ];

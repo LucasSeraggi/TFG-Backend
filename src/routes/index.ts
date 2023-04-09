@@ -1,7 +1,12 @@
-import express, { Response } from 'express';
+import express, { Request, Response } from 'express';
 import { verifyToken } from '../middlewares/auth';
 
 const router = express.Router();
+
+router.all('*', (req: Request, __: Response, next: any) => {
+  console.info('\n\n' + req.method + ':' + req.originalUrl);
+  next();
+});
 
 router.get('/api', (_: any, res: Response) => {
   res.status(200).json({
@@ -26,5 +31,7 @@ router.get('/api/this', [verifyToken], async (req: any, res: any) => {
     return res.status(400).send({ error: error });
   }
 });
+
+
 
 export = router;

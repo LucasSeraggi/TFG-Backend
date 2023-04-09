@@ -1,10 +1,10 @@
 DROP TYPE IF EXISTS ENUM_USERS_ROLE CASCADE;
 
 CREATE TYPE ENUM_USERS_ROLE AS ENUM (
-    'adm',
-    'student',
-    'teacher',
-    'tutor'
+    'Administrador',
+    'Estudante',
+    'Professor',
+    'Tutor'
 );
 
 DROP TYPE IF EXISTS ENUM_ACTIVITIES_TYPE CASCADE;

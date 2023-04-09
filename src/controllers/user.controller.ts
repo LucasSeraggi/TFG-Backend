@@ -44,7 +44,7 @@ const loginUser = async (req: Request, res: Response) => {
         .json({ error: "User email and password are required" });
     }
 
-    const userDb = await User.find(user.email);
+    const userDb = await User.findOld(user.email);
 
     if (userDb.rowCount == 0) {
       return res.status(401)
@@ -91,7 +91,7 @@ const listUsers = async (_: Request, res: Response) => {
 
 const userProfile = async (req: Request, res: Response) => {
   try {
-    const userProfile = await User.find(req.query.email);
+    const userProfile = await User.findOld(req.query.email);
     res.status(200).send({
       success: true,
       message: userProfile.rows
@@ -107,7 +107,7 @@ const userProfile = async (req: Request, res: Response) => {
 const userDelete = async (req: Request, res: Response) => {
   try {
     const deleteUser = await User.delete(req);
-    if(deleteUser.rowCount != 0){
+    if (deleteUser.rowCount != 0) {
       res.status(200).send({
         success: true,
         message: `User ${deleteUser.rows[0].name} deleted successfully.`
@@ -128,7 +128,7 @@ const userDelete = async (req: Request, res: Response) => {
 
 const isNewUser = async (req: Request, res: Response) => {
   try {
-    const userProfile = await User.find(req.query.email);
+    const userProfile = await User.findOld(req.query.email);
     res.status(200).send({
       success: true,
       message: (userProfile.rowCount === 0) ? (true) : (false)
