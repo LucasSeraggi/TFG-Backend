@@ -126,6 +126,21 @@ const userDelete = async (req: Request, res: Response) => {
   }
 }
 
-const UserController = { registerNewUser, listUsers, userProfile, userDelete, loginUser }
+const isNewUser = async (req: Request, res: Response) => {
+  try {
+    const userProfile = await User.find(req.query.email);
+    res.status(200).send({
+      success: true,
+      message: (userProfile.rowCount === 0) ? (true) : (false)
+    });
+  } catch (err) {
+    res.status(400).send({
+      success: false,
+      message: ({ err: err })
+    });
+  }
+}
+
+const UserController = { registerNewUser, listUsers, userProfile, userDelete, loginUser, isNewUser }
 
 export = UserController;

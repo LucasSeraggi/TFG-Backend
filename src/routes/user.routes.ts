@@ -13,8 +13,11 @@ router.post('/api/user/login', userController.loginUser);
 //Dados de todos os usuários
 router.get('/api/users', [verifyToken], userController.listUsers); //add auth
 
-//Dados do usuário
+//Dados de um usuário especifico
 router.get('/api/userData', [verifyToken], userController.userProfile);
+
+//Verica se usuario existe na base de dados
+router.get('/api/isNewUser', [verifyToken], userController.isNewUser);
 
 //Excluir usuário
 router.delete('/api/user/delete', [verifyToken], userController.userDelete);
