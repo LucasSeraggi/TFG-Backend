@@ -1,21 +1,33 @@
 import db from '../config/databaseConnection.config';
-import { Request, Response } from "express";
+import { Request } from "express";
+import bcrypt from 'bcryptjs';
+import jwt from "jsonwebtoken";
+
+
+const SECRET = process.env.JWT_SECRET || "secret";
 
 class School {
     static async save(req: Request) {
+
+        const saltRounds = 10;
+        const passwordHash = await bcrypt.hash(req.body.password, saltRounds);
+
         const values = [
             req.body.name,
             req.body.cnpj,
             req.body.logo,
             req.body.cep,
+            req.body.email,
+            req.body.phone,
+            passwordHash,
         ];
 
         const queryInsertSchool = {
             text: `
                     INSERT INTO schools (
-                        name, cnpj, logo, cep 
+                        name, cnpj, logo, cep, email, phone, password
                     )
-                    VALUES ($1, $2, $3, $4)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
                     RETURNING
                         id,
                         name
@@ -48,14 +60,14 @@ class School {
         }
     }
 
-    static async find(req: Request) {
+    static async find(email: string) {
         const values = [
-            req.query.name
+            email
         ];
         const querySelectSchool = {
             text: `
                     SELECT * FROM schools s
-                    where s.name = $1 
+                    where s.email = $1 
                 `,
             values,
         }
@@ -88,6 +100,14 @@ class School {
             console.log(err);
             throw err;
         }
+    }
+
+    static generatorJwtToken(schoolId: string, email: string) {
+        return jwt.sign({ email, schoolId }, SECRET);
+    }
+
+    static async validatePass(password: string, hash: string) {
+        return bcrypt.compareSync(password, hash);
     }
 }
 

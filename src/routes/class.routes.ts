@@ -1,18 +1,19 @@
 import express from 'express';
+import classController from '../controllers/class.controller';
+import { verifyToken } from '../middlewares/auth';
+
 const router = express.Router();
 
-import classController from '../controllers/class.controller';
-
 //Registrar nova classe
-router.post('/class/register', classController.registerNewClass);
+router.post('/api/class/register', [verifyToken], classController.register);
 
 //Dados de todas as classes
-router.get('/classes', classController.listClasses); //add auth
-
-//Dados da classe
-router.get('/classData', classController.classProfile);
+router.get('/api/class', [verifyToken], classController.find);
+router.get('/api/class/:id', [verifyToken], classController.get);
 
 //Excluir class
-router.delete('/class/delete', classController.classDelete);
+router.delete('/api/class/:id', [verifyToken], classController.remove);
+
+router.patch('/api/class', [verifyToken], classController.update);
 
 export = router;

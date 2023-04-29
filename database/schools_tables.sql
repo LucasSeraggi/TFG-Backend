@@ -1,14 +1,3 @@
-CREATE TYPE ENUM_USERS_POSITION AS ENUM (
-    'teacher',
-    'student'
-);
-
-CREATE TYPE ENUM_ACTIVITIES_TYPE AS ENUM (
-    'quiz',
-    'dissertation',
-    'fill_the_blanks'
-);
-
 DROP TABLE IF EXISTS schools;
 
 CREATE TABLE IF NOT EXISTS schools (
@@ -16,19 +5,24 @@ CREATE TABLE IF NOT EXISTS schools (
     name VARCHAR(255) NOT NULL,
     cnpj VARCHAR(18) NOT NULL,
     logo jsonb,
+    social jsonb,
     cep VARCHAR(9) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    PRIMARY KEY (id)
+
+    CONSTRAINT schools_pkey PRIMARY KEY (id),
+    CONSTRAINT unique_email UNIQUE (email)
 );
 
 DROP TABLE IF EXISTS classes;
 
 CREATE TABLE IF NOT EXISTS classes (
     id SERIAL NOT NULL,
+    school_id INT NOT NULL REFERENCES schools (id),
     name VARCHAR(255) NOT NULL,
-    school_id INT NOT NULL,
-    users INT ARRAY,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     PRIMARY KEY (id)
@@ -38,12 +32,12 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL NOT NULL,
-    school_id INT NOT NULL,
-    class_id INT NOT NULL,
+    school_id INT NOT NULL REFERENCES schools (id),
+    class_id INT NOT NULL REFERENCES classes (id),
     name VARCHAR(255) NOT NULL,
     registration VARCHAR(10) NOT NULL,
-    birth_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    position ENUM_USERS_POSITION NOT NULL,
+    birth_date DATE NOT NULL,
+    role ENUM_USERS_ROLE NOT NULL,
     phone VARCHAR(20) NOT NULL,
     email VARCHAR(255) NOT NULL,
     cpf VARCHAR(14) NOT NULL,
@@ -53,20 +47,23 @@ CREATE TABLE IF NOT EXISTS users (
     address VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    PRIMARY KEY (id)
+
+    PRIMARY KEY (id),
+    UNIQUE (email),
+    UNIQUE (registration)
 );
 
 DROP TABLE IF EXISTS subjects;
 
 CREATE TABLE IF NOT EXISTS subjects (
     id SERIAL NOT NULL,
-    school_id INT NOT NULL,
+    school_id INT NOT NULL REFERENCES schools (id),
+    teacher_id INT NOT NULL REFERENCES users (id),
+    class_id INT NOT NULL REFERENCES classes (id),
     name VARCHAR(255) NOT NULL,
-    students INT ARRAY,
-    teacher INT,
-    period VARCHAR(10) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+
     PRIMARY KEY (id)
 );
 

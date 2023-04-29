@@ -1,224 +1,330 @@
-// import bcrypt from 'bcryptjs';
+import jwt from "jsonwebtoken";
 import db from '../config/databaseConnection.config';
-import { Request, Response } from "express";
+import { Request } from "express";
+import { TokenJwt } from "../interface/global.interface";
+import bcrypt from 'bcryptjs';
+import { UserType, UserTypeEmpty } from "../interface/user.interface";
+import { UserRoleEnum } from "../interface/user_role.enum";
 
-class User {
-  static async save(req: Request) {
-    // this.body.password = await bcrypt.hash(user.password, 8)
+const SECRET = process.env.JWT_SECRET || "secret";
+const SALT_BCRYPT = Number(process.env.SALT_BCRYPT) || 10;
+
+class User implements UserType {
+  private password?: string;
+  id?: number;
+  name: string;
+  schoolId: number;
+  classId: number;
+  registration: string;
+  birthDate: Date;
+  role: UserRoleEnum;
+  phone: string;
+  email: string;
+  cpf: string;
+  rg: string;
+  profile_picture?: {}
+  address?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+
+  constructor({ id, name, schoolId, classId, registration, birthDate: birth_date, role, phone, email, cpf, rg, profile_picture, address, createdAt, updatedAt }: UserType, password?: string) {
+    this.id = id;
+    this.name = name;
+    this.schoolId = schoolId;
+    this.classId = classId;
+    this.registration = registration;
+    this.birthDate = birth_date;
+    this.role = role;
+    this.phone = phone;
+    this.email = email;
+    this.cpf = cpf;
+    this.rg = rg;
+    this.profile_picture = profile_picture;
+    this.address = address;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+    this.password = password;
+  }
+
+  static createByDb(rowDb: any, password?: string): User {
+    return new User({
+      id: rowDb.id,
+      name: rowDb.name,
+      schoolId: rowDb.school_id,
+      classId: rowDb.class_id,
+      registration: rowDb.registration,
+      birthDate: rowDb.birth_date,
+      role: rowDb.role,
+      phone: rowDb.phone,
+      email: rowDb.email,
+      cpf: rowDb.cpf,
+      rg: rowDb.rg,
+      profile_picture: rowDb.profile_picture,
+      address: rowDb.address,
+      createdAt: rowDb.created_at,
+      updatedAt: rowDb.updated_at,
+    }, password,
+    );
+  }
+
+  toResume(role: UserRoleEnum): object {
+    let data: {};
+
+    switch (role) {
+      case UserRoleEnum.ADMIN:
+        data = {
+          id: this.id,
+          name: this.name,
+          schoolId: this.schoolId,
+          classId: this.classId,
+          registration: this.registration,
+          birth_date: this.birthDate,
+          role: this.role,
+          phone: this.phone,
+          email: this.email,
+          cpf: this.cpf,
+          rg: this.rg,
+          profile_picture: this.profile_picture,
+          address: this.address,
+          createdAt: this.createdAt,
+          updatedAt: this.updatedAt,
+        };
+        break;
+      case UserRoleEnum.TEACHER:
+      case UserRoleEnum.TUTOR:
+        data = {
+          id: this.id,
+          name: this.name,
+          schoolId: this.schoolId,
+          classId: this.classId,
+          registration: this.registration,
+          birth_date: this.birthDate,
+          role: this.role,
+          phone: this.phone,
+          email: this.email,
+          profile_picture: this.profile_picture,
+          address: this.address,
+          createdAt: this.createdAt,
+          updatedAt: this.updatedAt,
+        };
+        break;
+      case UserRoleEnum.STUDENT:
+        data = {
+          id: this.id,
+          name: this.name,
+          schoolId: this.schoolId,
+          classId: this.classId,
+          registration: this.registration,
+          role: this.role,
+          phone: this.phone,
+          email: this.email,
+          profile_picture: this.profile_picture,
+          createdAt: this.createdAt,
+          updatedAt: this.updatedAt,
+        };
+        break;
+      default:
+        data = {};
+        break;
+    }
+
+    return data;
+  }
+
+  async save(): Promise<void> {
+    try {
+      this.password = await bcrypt.hash(this.password!, SALT_BCRYPT);
+    } catch (error) {
+      throw "password invalid";
+    }
+
     const values = [
-      req.body.school_id,
-      req.body.class_id,
-      req.body.name,
-      req.body.registration,
-      req.body.birth_date,
-      req.body.position,
-      req.body.phone,
-      req.body.email,
-      req.body.cpf,
-      req.body.rg,
-      req.body.password,
-      req.body.profile_picture,
-      req.body.address,
+      this.name,
+      this.schoolId,
+      this.classId,
+      this.registration,
+      this.birthDate,
+      this.role,
+      this.phone,
+      this.email,
+      this.cpf,
+      this.rg,
+      this.profile_picture,
+      this.address,
+      this.password,
     ];
-
-    const queryInsertUser = {
-      text: `
-          INSERT INTO users (
-            school_id, class_id, name, registration, birth_date, position,
-            phone, email, cpf, rg, password, profile_picture, address
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-          RETURNING
-              id,
-              registration,
-              class_id,
-              name,
-              email
-      `,
-      values,
-    };
-
-    try {
-      const userCreate = await db.dbConn(queryInsertUser);
-      return userCreate;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
-  }
-
-  static async list() {
-    const querySelectUsers = {
-      text: `
-              SELECT * FROM users
-          `
-    }
-    try {
-      const users = await db.dbConn(querySelectUsers);
-      return users;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
-  }
-
-  static async generateAuthToken() {
-    // const user = this;
-    // const token = jwt.sign({ _id: user._id, name: user.name, email: user.email }, 'secret');
-    // user.tokens = user.tokens.concat({ token });
-    // // await user.save();
-    // return token;
-  }
-
-  static async findEmail(email: string) {
-    const values = [email];
     const query = {
       text: `
-          SELECT *
-          FROM users
-          WHERE email = $1
-          Limit 1
-      `, values,
-    }
-    const result = await db.dbConn(query);
-    if (result.rowCount == 0) {
-      return false;
-    } else if (result.rowCount > 0) {
-      return true;
-    }
-
-    throw 'Error query';
-  }
-
-  static async find(req: Request) {
-    const values = [
-      req.query.cpf
-    ];
-    const querySelectUser = {
-      text: `
-                SELECT * FROM users u
-                where u.cpf = $1 
-            `,
+              INSERT INTO users (
+                name,
+                school_id,
+                class_id,
+                registration,
+                birth_date,
+                role,
+                phone,
+                email,
+                cpf,
+                rg,
+                profile_picture,
+                address,
+                password
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+              RETURNING id
+          `,
       values,
     }
+
     try {
-      const userFind = await db.dbConn(querySelectUser);
-      return userFind;
+      const resp = await db.dbConn(query);
+      this.id = resp.rows[0].id;
     } catch (err: any) {
-      console.log(err);
-      throw err;
+      console.error(err);
+      throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
     }
   }
 
-  static async delete(req: Request) {
-    const values = [
-      req.query.cpf
-    ];
-    const queryDeleteUser = {
+  static async get(id: number, school_id: number): Promise<User | null> {
+    const values = [id, school_id];
+    const query = {
       text: `
-                DELETE FROM users u
-                where u.cpf = $1
-                RETURNING
-                    name
-            `,
+              SELECT * FROM users
+              WHERE 
+                id = $1 AND
+                school_id = $2
+          `,
       values,
     }
+
     try {
-      const userDelete = await db.dbConn(queryDeleteUser);
-      return userDelete;
+      const row = await db.dbConn(query);
+
+      if (row.rows.length == 1) {
+        return User.createByDb(row.rows[0]);
+      }
+      return null;
     } catch (err: any) {
-      console.log(err);
-      throw err;
+      console.error(err);
+      throw err.detail;
     }
+  }
+
+  static async find({ classId, name, email, registration, schoolId, role }: UserTypeEmpty, isPassword: boolean = false): Promise<User[]> {
+    const query = {
+      text: `
+              SELECT * FROM users
+              WHERE 
+                ${classId ? `class_id = ${classId} AND` : ''}
+                ${email ? `email = '${email}' AND` : ''}
+                ${registration ? `registration = '${registration}' AND` : ''}
+                ${role ? `role = '${role}' AND` : ''}
+                ${name ? `name ILIKE '%${name}%' AND` : ''}
+                ${schoolId ? `school_id = '${schoolId}' AND` : ''}
+                true
+          `,
+    }
+
+    try {
+      const rows = await db.dbConn(query);
+      if (!rows || rows.rows.length == 0) return [];
+
+      const subjects: User[] = [];
+      for (const iterator of rows.rows) {
+        subjects.push(User.createByDb(iterator, isPassword ? iterator.password : undefined));
+      }
+
+      return subjects;
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
+    }
+  }
+
+  static async remove(id: number, school_id: number): Promise<number> {
+    const values = [id, school_id];
+    const query = {
+      text: `
+              DELETE FROM users
+              WHERE 
+                id = $1 AND
+                school_id = $2
+          `,
+      values,
+    }
+
+    try {
+      let response = await db.dbConn(query);
+      return response.rowCount;
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail;
+    }
+  }
+
+  async update(): Promise<number> {
+    const values = [
+      this.name,
+      this.schoolId,
+      this.classId,
+      this.registration,
+      this.birthDate,
+      this.role,
+      this.phone,
+      this.email,
+      this.cpf,
+      this.rg,
+      this.profile_picture,
+      this.address,
+      this.id,
+    ];
+    const query = {
+      text: `
+              UPDATE users
+                SET
+                  name = $1,
+                  class_id = $3,
+                  registration = $4,
+                  birth_date = $5,
+                  role = $6,
+                  phone = $7,
+                  email = $8,
+                  cpf = $9,
+                  rg = $10,
+                  profile_picture = $11,
+                  address = $12,
+                  updated_at = NOW()
+                WHERE 
+                  id = $13 AND school_id = $2
+          `,
+      values,
+    }
+
+    try {
+      let response = await db.dbConn(query);
+      return response.rowCount;
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
+    }
+  }
+
+  validatePass(password: string) {
+    return bcrypt.compareSync(password, this.password!);
+  }
+
+  get toTokenInfo(): TokenJwt {
+    return {
+      userId: this.id,
+      schoolId: this.schoolId,
+      email: this.email,
+      role: this.role,
+    }
+  }
+
+  get toTokenJwt(): string {
+    return jwt.sign(this.toTokenInfo, SECRET);
+    // return jwt.sign(this.toTokenInfo, SECRET, { expiresIn: '3h' });
   }
 }
 
 export = User;
-
-/*
-CREATE TABLE IF NOT EXISTS users (
-    id SERIAL NOT NULL,
-    school_id INT NOT NULL,
-    class_id INT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    registration VARCHAR(10) NOT NULL,
-    birth_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    position ENUM_USERS_POSITION NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    cpf VARCHAR(14) NOT NULL,
-    rg VARCHAR(13) NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    profile_picture jsonb,
-    address VARCHAR(255),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    PRIMARY KEY (id)
-);
-
-
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-
-const Schema = mongoose.Schema;
-
-const userSchema = new Schema({
-    name: { type: String, maxlength: 50, required: true },
-    email: { type: String, maxlength: 30, required: true },
-    password: { type: String, required: true },
-    tickets: [
-        {
-            ticket: { type: String }
-        }
-    ],
-    tokens: [
-        {
-            token: { type: String, required: true }
-        }
-    ]
-}, {
-    timestamps: true,
-    collection: 'users',
-});
-
-userSchema.pre('save', async function(next) {
-    const user = this;
-    if (user.isModified('password')) {
-        user.password = await bcrypt.hash(user.password, 8)
-    }
-    next();
-});
-
-userSchema.methods.generateAuthToken = async function() {
-    const user = this;
-    const token = jwt.sign({ _id: user._id, name: user.name, email: user.email }, 'secret');
-    user.tokens = user.tokens.concat({ token });
-    await user.save();
-    return token;
-};
-
-userSchema.statics.findByCredentials = async (email, password) => {
-    const user = await User.findOne({ email });
-    console.log(user);
-
-    if (!user) {
-        throw new Error({ error: 'Login Inválido!' });
-    }
-
-    const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordMatch) {
-        throw new Error({ error: 'Senha Inválida!' });
-    }
-
-    return user;
-};
-
-const User = mongoose.model('User', userSchema);
-
-module.exports = User;
-
-*/
-
-

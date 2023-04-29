@@ -1,24 +1,27 @@
 import express from 'express';
-import auth from '../middlewares/auth';
+import userController from '../controllers/user.controller';
+import { verifyToken } from '../middlewares/auth';
+
 const router = express.Router();
 
-import userController from '../controllers/user.controller';
-
 //Registrar novo usuário
-router.post('/user/register', userController.registerNewUser);
+router.post('/api/user/register', [verifyToken], userController.register);
 
-/*
 //Login de usuário
-router.post('/login', userController.loginUser);
-*/
+router.post('/api/user/login', userController.login);
 
 //Dados de todos os usuários
-router.get('/users', userController.listUsers); //add auth
+router.get('/api/user', [verifyToken], userController.find); //add auth
 
-//Dados do usuário
-router.get('/userData', userController.userProfile);
+// Retorna dados do usuário logado
+router.get('/api/user/me', [verifyToken], userController.me);
+//Dados de um usuário especifico
+router.get('/api/user/:id', [verifyToken], userController.get);
 
 //Excluir usuário
-router.delete('/user/delete', userController.userDelete);
+router.delete('/api/user/:id', [verifyToken], userController.remove);
+
+//Verica se usuario existe na base de dados
+router.get('/api/isNewUser/', [verifyToken], userController.isNewUser);
 
 export = router;
