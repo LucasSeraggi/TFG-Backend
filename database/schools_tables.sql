@@ -32,8 +32,8 @@ DROP TABLE IF EXISTS users;
 
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL NOT NULL,
-    school_id INT NOT NULL,
-    class_id INT NOT NULL,
+    school_id INT NOT NULL REFERENCES schools (id),
+    class_id INT NOT NULL REFERENCES classes (id),
     name VARCHAR(255) NOT NULL,
     registration VARCHAR(10) NOT NULL,
     birth_date DATE NOT NULL,
@@ -47,7 +47,10 @@ CREATE TABLE IF NOT EXISTS users (
     address VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
-    PRIMARY KEY (id)
+
+    PRIMARY KEY (id),
+    UNIQUE (email),
+    UNIQUE (registration)
 );
 
 DROP TABLE IF EXISTS subjects;

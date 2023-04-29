@@ -66,7 +66,7 @@ const find = async (req: Request, res: Response) => {
       name: req.query.name ? String(req.query.name) : undefined,
     });
 
-    if (classes && classes.length > 0) return res.status(200).send(classes);
+    if (classes) return res.status(200).send(classes);
     res.status(404).send({
       message: 'Class not found.'
     });

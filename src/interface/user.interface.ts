@@ -1,13 +1,13 @@
 import { GlobalType } from "./global.interface";
-import { UserRole } from "./user_role.enum";
+import { UserRoleEnum } from "./user_role.enum";
 
 interface UserTypeEmpty extends GlobalType {
   name?: string;
   schoolId?: number;
   classId?: number;
   registration?: string;
-  birth_date?: Date;
-  role?: UserRole;
+  birthDate?: Date;
+  role?: UserRoleEnum;
   phone?: string;
   email?: string;
   cpf?: string;
@@ -21,8 +21,8 @@ interface UserType extends UserTypeEmpty {
   schoolId: number;
   classId: number;
   registration: string;
-  birth_date: Date;
-  role: UserRole;
+  birthDate: Date;
+  role: UserRoleEnum;
   phone: string;
   email: string;
   cpf: string;

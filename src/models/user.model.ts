@@ -4,31 +4,36 @@ import { Request } from "express";
 import { TokenJwt } from "../interface/global.interface";
 import bcrypt from 'bcryptjs';
 import { UserType, UserTypeEmpty } from "../interface/user.interface";
-import { UserRole } from "../interface/user_role.enum";
+import { UserRoleEnum } from "../interface/user_role.enum";
 
 const SECRET = process.env.JWT_SECRET || "secret";
+const SALT_BCRYPT = Number(process.env.SALT_BCRYPT) || 10;
 
 class User implements UserType {
+  private password?: string;
+  id?: number;
   name: string;
   schoolId: number;
   classId: number;
   registration: string;
-  birth_date: Date;
-  role: UserRole;
+  birthDate: Date;
+  role: UserRoleEnum;
   phone: string;
   email: string;
   cpf: string;
   rg: string;
-  password?: string;
   profile_picture?: {}
   address?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 
-  constructor({ name, schoolId, classId, registration, birth_date, role, phone, email, cpf, rg, profile_picture, address }: UserType) {
+  constructor({ id, name, schoolId, classId, registration, birthDate: birth_date, role, phone, email, cpf, rg, profile_picture, address, createdAt, updatedAt }: UserType, password?: string) {
+    this.id = id;
     this.name = name;
     this.schoolId = schoolId;
     this.classId = classId;
     this.registration = registration;
-    this.birth_date = birth_date;
+    this.birthDate = birth_date;
     this.role = role;
     this.phone = phone;
     this.email = email;
@@ -36,15 +41,19 @@ class User implements UserType {
     this.rg = rg;
     this.profile_picture = profile_picture;
     this.address = address;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+    this.password = password;
   }
 
-  static createByDb(rowDb: any): User {
+  static createByDb(rowDb: any, password?: string): User {
     return new User({
+      id: rowDb.id,
       name: rowDb.name,
       schoolId: rowDb.school_id,
       classId: rowDb.class_id,
       registration: rowDb.registration,
-      birth_date: rowDb.birth_date,
+      birthDate: rowDb.birth_date,
       role: rowDb.role,
       phone: rowDb.phone,
       email: rowDb.email,
@@ -52,18 +61,127 @@ class User implements UserType {
       rg: rowDb.rg,
       profile_picture: rowDb.profile_picture,
       address: rowDb.address,
-    });
+      createdAt: rowDb.created_at,
+      updatedAt: rowDb.updated_at,
+    }, password,
+    );
   }
 
-  get toResume(): object {
-    // Não possui dados sensíveis
-    return {
-      name: this.name,
-      registration: this.registration,
-      phone: this.phone,
-      email: this.email,
-      profile_picture: this.profile_picture,
-    };
+  toResume(role: UserRoleEnum): object {
+    let data: {};
+
+    switch (role) {
+      case UserRoleEnum.ADMIN:
+        data = {
+          id: this.id,
+          name: this.name,
+          schoolId: this.schoolId,
+          classId: this.classId,
+          registration: this.registration,
+          birth_date: this.birthDate,
+          role: this.role,
+          phone: this.phone,
+          email: this.email,
+          cpf: this.cpf,
+          rg: this.rg,
+          profile_picture: this.profile_picture,
+          address: this.address,
+          createdAt: this.createdAt,
+          updatedAt: this.updatedAt,
+        };
+        break;
+      case UserRoleEnum.TEACHER:
+      case UserRoleEnum.TUTOR:
+        data = {
+          id: this.id,
+          name: this.name,
+          schoolId: this.schoolId,
+          classId: this.classId,
+          registration: this.registration,
+          birth_date: this.birthDate,
+          role: this.role,
+          phone: this.phone,
+          email: this.email,
+          profile_picture: this.profile_picture,
+          address: this.address,
+          createdAt: this.createdAt,
+          updatedAt: this.updatedAt,
+        };
+        break;
+      case UserRoleEnum.STUDENT:
+        data = {
+          id: this.id,
+          name: this.name,
+          schoolId: this.schoolId,
+          classId: this.classId,
+          registration: this.registration,
+          role: this.role,
+          phone: this.phone,
+          email: this.email,
+          profile_picture: this.profile_picture,
+          createdAt: this.createdAt,
+          updatedAt: this.updatedAt,
+        };
+        break;
+      default:
+        data = {};
+        break;
+    }
+
+    return data;
+  }
+
+  async save(): Promise<void> {
+    try {
+      this.password = await bcrypt.hash(this.password!, SALT_BCRYPT);
+    } catch (error) {
+      throw "password invalid";
+    }
+
+    const values = [
+      this.name,
+      this.schoolId,
+      this.classId,
+      this.registration,
+      this.birthDate,
+      this.role,
+      this.phone,
+      this.email,
+      this.cpf,
+      this.rg,
+      this.profile_picture,
+      this.address,
+      this.password,
+    ];
+    const query = {
+      text: `
+              INSERT INTO users (
+                name,
+                school_id,
+                class_id,
+                registration,
+                birth_date,
+                role,
+                phone,
+                email,
+                cpf,
+                rg,
+                profile_picture,
+                address,
+                password
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+              RETURNING id
+          `,
+      values,
+    }
+
+    try {
+      const resp = await db.dbConn(query);
+      this.id = resp.rows[0].id;
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
+    }
   }
 
   static async get(id: number, school_id: number): Promise<User | null> {
@@ -91,17 +209,18 @@ class User implements UserType {
     }
   }
 
-  static async find({ classId, name, email, registration, schoolId, role }: UserTypeEmpty): Promise<User[]> {
+  static async find({ classId, name, email, registration, schoolId, role }: UserTypeEmpty, isPassword: boolean = false): Promise<User[]> {
     const query = {
       text: `
               SELECT * FROM users
               WHERE 
                 ${classId ? `class_id = ${classId} AND` : ''}
-                ${email ? `teacher_id = '${email}' AND` : ''}
-                ${registration ? `teacher_id = '${registration}' AND` : ''}
+                ${email ? `email = '${email}' AND` : ''}
+                ${registration ? `registration = '${registration}' AND` : ''}
                 ${role ? `role = '${role}' AND` : ''}
                 ${name ? `name ILIKE '%${name}%' AND` : ''}
-                school_id = ${schoolId}
+                ${schoolId ? `school_id = '${schoolId}' AND` : ''}
+                true
           `,
     }
 
@@ -111,149 +230,100 @@ class User implements UserType {
 
       const subjects: User[] = [];
       for (const iterator of rows.rows) {
-        subjects.push(User.createByDb(iterator));
+        subjects.push(User.createByDb(iterator, isPassword ? iterator.password : undefined));
       }
 
       return subjects;
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
+    }
+  }
+
+  static async remove(id: number, school_id: number): Promise<number> {
+    const values = [id, school_id];
+    const query = {
+      text: `
+              DELETE FROM users
+              WHERE 
+                id = $1 AND
+                school_id = $2
+          `,
+      values,
+    }
+
+    try {
+      let response = await db.dbConn(query);
+      return response.rowCount;
     } catch (err: any) {
       console.error(err);
       throw err.detail;
     }
   }
 
-
-  // Older code ----------------------------------------------------------------------
-  static async save(req: Request) {
-    try {
-      const saltRounds = 10;
-      const passwordHash = await bcrypt.hash(req.body.password, saltRounds);
-
-      const values = [
-        req.body.school_id,
-        req.body.class_id,
-        req.body.name,
-        req.body.registration,
-        req.body.birth_date,
-        req.body.role,
-        req.body.phone,
-        req.body.email,
-        req.body.cpf,
-        req.body.rg,
-        passwordHash,
-        req.body.profile_picture,
-        req.body.address,
-      ];
-
-      const queryInsertUser = {
-        text: `
-          INSERT INTO users (
-            school_id, class_id, name, registration, birth_date, role,
-            phone, email, cpf, rg, password, profile_picture, address
-          )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-          RETURNING
-              id,
-              registration,
-              class_id,
-              name,
-              email
-      `,
-        values,
-      };
-
-      const userCreate = await db.dbConn(queryInsertUser);
-      return userCreate;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
-  }
-
-  static async list() {
-    const querySelectUsers = {
-      text: `
-              SELECT * FROM users
-          `
-    }
-    try {
-      const users = await db.dbConn(querySelectUsers);
-      return users;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
-  }
-
-  static async validatePass(password: string, hash: string) {
-    return bcrypt.compareSync(password, hash);
-  }
-
-  static async generateAuthToken(user: TokenJwt) {
-    const token = jwt.sign(user, SECRET);
-
-    return token;
-  }
-
-  static async findEmail(email: string) {
-    const values = [email];
+  async update(): Promise<number> {
+    const values = [
+      this.name,
+      this.schoolId,
+      this.classId,
+      this.registration,
+      this.birthDate,
+      this.role,
+      this.phone,
+      this.email,
+      this.cpf,
+      this.rg,
+      this.profile_picture,
+      this.address,
+      this.id,
+    ];
     const query = {
       text: `
-          SELECT *
-          FROM users
-          WHERE email = $1
-          Limit 1
-      `, values,
-    }
-    const result = await db.dbConn(query);
-    if (result.rowCount == 0) {
-      return false;
-    } else if (result.rowCount > 0) {
-      return true;
-    }
-
-    throw 'Error query';
-  }
-
-  static async findOld(email: any) {
-    const values = [
-      email
-    ];
-    const querySelectUser = {
-      text: `
-                SELECT * FROM users u
-                where u.email = $1 
-            `,
+              UPDATE users
+                SET
+                  name = $1,
+                  class_id = $3,
+                  registration = $4,
+                  birth_date = $5,
+                  role = $6,
+                  phone = $7,
+                  email = $8,
+                  cpf = $9,
+                  rg = $10,
+                  profile_picture = $11,
+                  address = $12,
+                  updated_at = NOW()
+                WHERE 
+                  id = $13 AND school_id = $2
+          `,
       values,
     }
+
     try {
-      const userFind = await db.dbConn(querySelectUser);
-      return userFind;
+      let response = await db.dbConn(query);
+      return response.rowCount;
     } catch (err: any) {
-      console.log(err);
-      throw err;
+      console.error(err);
+      throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
     }
   }
 
-  static async delete(req: Request) {
-    const values = [
-      req.query.cpf
-    ];
-    const queryDeleteUser = {
-      text: `
-                DELETE FROM users u
-                where u.cpf = $1
-                RETURNING
-                    name
-            `,
-      values,
+  validatePass(password: string) {
+    return bcrypt.compareSync(password, this.password!);
+  }
+
+  get toTokenInfo(): TokenJwt {
+    return {
+      userId: this.id,
+      schoolId: this.schoolId,
+      email: this.email,
+      role: this.role,
     }
-    try {
-      const userDelete = await db.dbConn(queryDeleteUser);
-      return userDelete;
-    } catch (err: any) {
-      console.log(err);
-      throw err;
-    }
+  }
+
+  get toTokenJwt(): string {
+    return jwt.sign(this.toTokenInfo, SECRET);
+    // return jwt.sign(this.toTokenInfo, SECRET, { expiresIn: '3h' });
   }
 }
 

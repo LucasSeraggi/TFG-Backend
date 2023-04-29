@@ -1,146 +1,236 @@
+import { UserRoleEnum } from '../interface/user_role.enum';
 import User from '../models/user.model';
 import { Request, Response } from "express";
 
-const registerNewUser = async (req: Request, res: Response) => {
+const register = async (req: Request, res: Response) => {
   try {
-    const finded = await User.findEmail(req.body.email);
-    if (finded) {
-      return res
-        .status(409)
-        .json({ message: "E-mail já cadastrado!" });
-    }
 
-    const userCreate = await User.save(req);
-    const userToken = await User.generateAuthToken({
-      userId: userCreate.rows[0].id,
-      schoolId: userCreate.rows[0].school_id,
-      email: userCreate.rows[0].email,
-    });
+    if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
+      return res.status(401).send({ message: 'School id not match with user.' });
+
+
+    const newUser = new User({
+      schoolId: Number(req.headers.schoolId),
+
+      classId: req.body.class_id,
+      name: req.body.name,
+      registration: req.body.registration,
+      birthDate: req.body.birth_date,
+      role: req.body.role,
+      phone: req.body.phone,
+      email: req.body.email,
+      cpf: req.body.cpf,
+      rg: req.body.rg,
+      profile_picture: req.body.profile_picture,
+      address: req.body.address,
+    }, req.body.password,
+    );
+
+    await newUser.save();
 
     res.status(201).send({
-      success: true,
-      message: `User ${userCreate.rows[0].name} created successfully.`,
-      id: userCreate.rows[0].id,
-      registration: userCreate.rows[0].registration,
-      class_id: userCreate.rows[0].class_id,
-      email: userCreate.rows[0].email,
-      token: userToken
+      id: newUser.id,
+      token: newUser.toTokenJwt,
+      message: `User '${newUser.name}' created with successfully.`,
     });
   } catch (err) {
-    res.status(401).send({
-      success: false,
-      message: ({ err: err })
+    res.status(400).send({
+      message: err
     })
   }
 };
 
-const loginUser = async (req: Request, res: Response) => {
+const login = async (req: Request, res: Response) => {
   try {
-    const user = req.body;
-
-    if (!user.email || !user.password) {
+    if (!req.body.email || !req.body.password) {
       return res
         .status(400)
-        .json({ error: "User email and password are required" });
+        .json({ message: "User email and password are required" });
     }
 
-    const userDb = await User.findOld(user.email);
+    const users = await User.find({ email: req.body.email }, true);
 
-    if (userDb.rowCount == 0) {
-      return res.status(401)
-        .json({ error: "Email not registered" });
+    if (users.length == 0) {
+      return res.status(401).json({ message: "Email not registered" });
+    } else if (users.length > 1) {
+      return res.status(401).json({ message: "Email duplicated" });
     }
 
-    const isValid = await User.validatePass(user.password, userDb.rows[0].password);
+    const user = users[0];
+    const isValid = user.validatePass(req.body.password);
 
     if (!isValid) {
       return res.status(401)
-        .json({ error: "Unauthorized" });
+        .json({ message: "Unauthorized" });
     } else {
-      const userInfo = {
-        userId: userDb.rows[0].id,
-        schoolId: userDb.rows[0].school_id,
-        email: userDb.rows[0].email,
-      };
-      const token = await User.generateAuthToken(userInfo);
       return res.json({
-        ...userInfo,
-        token,
+        ...user.toTokenInfo,
+        token: user.toTokenJwt,
       });
     }
   }
   catch (error: any) {
-    return res.status(400).json({ error: error.message });
+    console.error(error);
+    return res.status(400).json({
+      message: error.message
+    });
   }
 }
 
-const listUsers = async (_: Request, res: Response) => {
+const find = async (req: Request, res: Response) => {
   try {
-    const users = await User.list();
-    res.status(200).send({
-      success: true,
-      message: users.rows
+    const user = await User.find({
+      schoolId: Number(req.headers.schoolId),
+      classId: req.query.class_id ? Number(req.query.class_id) : undefined,
+      name: req.query.name ? String(req.query.name) : undefined,
+      registration: req.query.registration ? String(req.query.registration) : undefined,
+      role: req.query.role ? String(req.query.role) as UserRoleEnum : undefined,
+      phone: req.query.phone ? String(req.query.phone) : undefined,
+      email: req.query.email ? String(req.query.email) : undefined,
+      cpf: req.query.cpf ? String(req.query.cpf) : undefined,
+      rg: req.query.rg ? String(req.query.rg) : undefined,
+    });
+
+    if (user && user.length > 0)
+      return res.status(200).send(user.map(u => u.toResume(req.headers.role as UserRoleEnum)));
+
+    res.status(404).send({
+      message: 'User not found.'
     });
   } catch (err) {
     res.status(400).send({
-      success: false,
-      message: ({ err: err })
-    });
+      message: err
+    })
   }
-}
+};
 
-const userProfile = async (req: Request, res: Response) => {
+const get = async (req: Request, res: Response) => {
   try {
-    const userProfile = await User.findOld(req.query.email);
-    res.status(200).send({
-      success: true,
-      message: userProfile.rows
+    const user = await User.get(
+      Number(req.params.id),
+      Number(req.headers.schoolId)
+    );
+
+    const role = (Number(req.params.id) == user?.id) ? UserRoleEnum.ADMIN : req.headers.role;
+    if (user) return res.status(200).send(user.toResume(role as UserRoleEnum));
+
+    res.status(404).send({
+      message: 'User not found.'
     });
   } catch (err) {
     res.status(400).send({
-      success: false,
-      message: ({ err: err })
-    });
+      message: err
+    })
   }
-}
+};
 
-const userDelete = async (req: Request, res: Response) => {
+const remove = async (req: Request, res: Response) => {
   try {
-    const deleteUser = await User.delete(req);
-    if (deleteUser.rowCount != 0) {
-      res.status(200).send({
-        success: true,
-        message: `User ${deleteUser.rows[0].name} deleted successfully.`
-      });
-    } else {
-      res.status(404).send({
-        success: false,
-        message: `User not found`
+    const rowRemoved = await User.remove(
+      Number(req.params.id),
+      Number(req.headers.schoolId)
+    );
+
+    if (rowRemoved == 0) {
+      return res.status(404).send({
+        message: 'User not found.'
       });
     }
+    return res.status(200).send({
+      message: 'User removed with successfully.'
+    });
   } catch (err) {
     res.status(400).send({
-      success: false,
-      message: ({ err: err })
+      message: err
+    })
+  }
+};
+
+
+const update = async (req: Request, res: Response) => {
+  try {
+
+    if (!req.body.id)
+      return res.status(400).send({ message: 'User id is required.' });
+
+    if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
+      return res.status(401).send({ message: 'School id not match with user.' });
+
+    if (req.headers.role != UserRoleEnum.ADMIN && req.headers.userId != req.body.id)
+      return res.status(403).send({ message: 'User not allowed.' });
+
+
+    const userUpdated = new User({
+      id: Number(req.body.id),
+      schoolId: Number(req.headers.schoolId),
+
+      classId: req.body.class_id,
+      name: req.body.name,
+      registration: req.body.registration,
+      birthDate: req.body.birth_date,
+      role: req.body.role,
+      phone: req.body.phone,
+      email: req.body.email,
+      cpf: req.body.cpf,
+      rg: req.body.rg,
+      profile_picture: req.body.profile_picture,
+      address: req.body.address,
+    });
+
+    const rowsUpdate = await userUpdated.update();
+    if (rowsUpdate == 0) {
+      return res.status(404).send({
+        message: 'User not found.'
+      });
+    }
+
+    res.status(200).send({
+      message: 'User updated with successfully.'
+    });
+  } catch (err) {
+    res.status(400).send({
+      message: err
     });
   }
-}
+};
 
 const isNewUser = async (req: Request, res: Response) => {
   try {
-    const userProfile = await User.findOld(req.query.email);
+    const userProfile = await User.find({ email: req.query.email as string });
     res.status(200).send({
-      success: true,
-      message: (userProfile.rowCount === 0) ? (true) : (false)
+      message: (userProfile.length === 0) ? (!true) : (!false),
     });
   } catch (err) {
     res.status(400).send({
-      success: false,
-      message: ({ err: err })
+      message: err,
     });
   }
 }
 
-const UserController = { registerNewUser, listUsers, userProfile, userDelete, loginUser, isNewUser }
+const me = async (req: Request, res: Response) => {
+  try {
+
+    const userProfile = await User.get(
+      Number(req.headers.userId),
+      Number(req.headers.schoolId)
+    );
+    res.status(200).send(userProfile?.toResume(UserRoleEnum.ADMIN));
+  } catch (err) {
+    res.status(400).send({
+      message: err,
+    });
+  }
+}
+
+const UserController = {
+  register,
+  login,
+  find,
+  get,
+  update,
+  remove,
+  isNewUser,
+  me,
+};
 
 export = UserController;

@@ -5,21 +5,23 @@ import { verifyToken } from '../middlewares/auth';
 const router = express.Router();
 
 //Registrar novo usuário
-router.post('/api/user/register', userController.registerNewUser);
+router.post('/api/user/register', [verifyToken], userController.register);
 
 //Login de usuário
-router.post('/api/user/login', userController.loginUser);
+router.post('/api/user/login', userController.login);
 
 //Dados de todos os usuários
-router.get('/api/users', [verifyToken], userController.listUsers); //add auth
+router.get('/api/user', [verifyToken], userController.find); //add auth
 
+// Retorna dados do usuário logado
+router.get('/api/user/me', [verifyToken], userController.me);
 //Dados de um usuário especifico
-router.get('/api/userData', [verifyToken], userController.userProfile);
-
-//Verica se usuario existe na base de dados
-router.get('/api/isNewUser', [verifyToken], userController.isNewUser);
+router.get('/api/user/:id', [verifyToken], userController.get);
 
 //Excluir usuário
-router.delete('/api/user/delete', [verifyToken], userController.userDelete);
+router.delete('/api/user/:id', [verifyToken], userController.remove);
+
+//Verica se usuario existe na base de dados
+router.get('/api/isNewUser/', [verifyToken], userController.isNewUser);
 
 export = router;

@@ -4,7 +4,9 @@ import { verifyToken } from '../middlewares/auth';
 const router = express.Router();
 
 router.all('*', (req: Request, __: Response, next: any) => {
-  console.info('\n\n' + req.method + ':' + req.originalUrl);
+  console.info('\n\n');
+  console.info(new Date().toISOString());
+  console.info(req.method + ':' + req.originalUrl);
   next();
 });
 
@@ -24,6 +26,7 @@ router.get('/api/this', [verifyToken], async (req: any, res: any) => {
       schoolId: req.headers.schoolId,
       email: req.headers.email,
       iat: req.headers.iat,
+      role: req.headers.role,
       now: (Date.now() / 1000).toFixed(0),
       req: req.headers,
     });

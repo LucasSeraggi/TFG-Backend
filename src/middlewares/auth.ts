@@ -34,6 +34,7 @@ const verifyToken = (req: Request, res: Response, next: any) => {
     req.headers.schoolId = info.schoolId?.toString();
     req.headers.iat = info.iat?.toString();
     req.headers.email = info.email;
+    req.headers.role = info.role;
 
     return next();
 };

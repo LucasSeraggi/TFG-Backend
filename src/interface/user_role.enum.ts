@@ -1,5 +1,5 @@
 enum UserRoleEnum {
-  ADM = 'Administrador',
+  ADMIN = 'Administrador',
   TEACHER = 'Professor',
   STUDENT = 'Estudante',
   TUTOR = 'Tutor',

@@ -1,3 +1,5 @@
+import { UserRoleEnum } from "./user_role.enum";
+
 interface GlobalType {
   id?: number;
   createdAt?: Date;
@@ -8,6 +10,7 @@ interface TokenJwt {
   userId?: number;
   schoolId: number;
   email: string;
+  role: UserRoleEnum;
   iat?: number;
 }
 
