@@ -13,6 +13,8 @@ router.post('/api/school/login', schoolController.login);
 //Dados de todas as escolas
 router.get('/api/schools', [verifyToken], schoolController.listSchools); //add auth
 
+router.get('/api/school/me', [verifyToken], schoolController.me); //add auth
+
 // //Dados da escola
 // router.get('/api/schoolData', [verifyToken], schoolController.schoolProfile);
 

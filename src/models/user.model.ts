@@ -15,7 +15,7 @@ class User implements UserType {
   name: string;
   schoolId: number;
   classId: number;
-  registration: string;
+  registration?: string;
   birthDate: Date;
   role: UserRoleEnum;
   phone: string;
@@ -142,7 +142,6 @@ class User implements UserType {
       this.name,
       this.schoolId,
       this.classId,
-      this.registration,
       this.birthDate,
       this.role,
       this.phone,
@@ -159,7 +158,6 @@ class User implements UserType {
                 name,
                 school_id,
                 class_id,
-                registration,
                 birth_date,
                 role,
                 phone,
@@ -168,9 +166,16 @@ class User implements UserType {
                 rg,
                 profile_picture,
                 address,
-                password
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-              RETURNING id
+                password,
+                registration
+              )
+                SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 
+                    concat( 
+                      EXTRACT(YEAR FROM  CURRENT_DATE), 
+                      LPAD(COUNT(*)::varchar,4,'0')
+                    ) FROM users
+                    WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM CURRENT_DATE)
+              RETURNING id, registration
           `,
       values,
     }
@@ -178,9 +183,10 @@ class User implements UserType {
     try {
       const resp = await db.dbConn(query);
       this.id = resp.rows[0].id;
+      this.registration = resp.rows[0].registration;
     } catch (err: any) {
       console.error(err);
-      throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
+      throw err.toString().replaceAll('"', "'") + ' - ' + err.detail;
     }
   }
 

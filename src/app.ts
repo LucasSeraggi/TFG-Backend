@@ -13,7 +13,8 @@ const app = express();
 // const databaseConnection = require('./config/databaseConnection.config');
 
 app.use(cors());
-app.use(express.json())
+//TODO: Definir limites de upload
+app.use(express.json({ limit: '50mb' }));
 //app.use() bibliotecas que for usar (provavelmente as de login)
 
 // Banco de Dados

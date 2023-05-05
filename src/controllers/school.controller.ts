@@ -1,18 +1,44 @@
 import School from '../models/school.model';
 import { Request, Response } from "express";
+import { Storage, StorageType } from '../services/firebase/storage';
+import { UserRoleEnum } from '../interface/user_role.enum';
 
 const registerNewSchool = async (req: Request, res: Response) => {
   try {
+    let url;
+
+    if (req.body.newLogo && req.body.newLogo.data && req.body.newLogo.name) {
+      const storage = new Storage();
+      url = await storage.upload({
+        base64: req.body.newLogo.data,
+        name: req.body.newLogo.name,
+        type: StorageType.logo,
+      });
+
+      req.body.logo = {
+        url,
+        'name': req.body.newLogo.name,
+        'mimeType': req.body.newLogo.mimeType
+      };
+      req.body.newLogo = undefined;
+      console.error(req.body);
+    }
+
+
     const schoolCreate = await School.save(req);
     const tokenJwt = School.generatorJwtToken(schoolCreate.rows[0].id, req.body.email);
 
     res.status(201).send({
-      success: true,
       id: schoolCreate.rows[0].id,
-      message: `School ${schoolCreate.rows[0].name} created successfully.`,
+      message: `Escola ${schoolCreate.rows[0].name} criada com sucesso.`,
+      schoolId: schoolCreate.rows[0].id,
+      name: schoolCreate.rows[0].name,
       email: req.body.email,
+      photoUrl: url,
+      authRole: UserRoleEnum.ADMIN,
       token: tokenJwt,
     });
+
   } catch (err) {
     res.status(400).send({
       success: false,
@@ -34,7 +60,7 @@ const login = async (req: Request, res: Response) => {
     const schoolDb = await School.find(school.email);
     if (schoolDb.rowCount == 0) {
       return res.status(401)
-        .json({ error: "Email not registered" });
+        .json({ error: "Email not registered", message: 'E-mail incorreto' });
     }
 
     const isValid = await School.validatePass(school.password, schoolDb.rows[0].password);
@@ -46,7 +72,10 @@ const login = async (req: Request, res: Response) => {
       const token = School.generatorJwtToken(schoolDb.rows[0].id, req.body.email);
       return res.status(200).json({
         schoolId: schoolDb.rows[0].id,
+        name: schoolDb.rows[0].name,
         email: req.body.email,
+        photoUrl: schoolDb.rows[0].logo.url,
+        authRole: UserRoleEnum.ADMIN,
         token
       });
 
@@ -105,12 +134,28 @@ const schoolDelete = async (req: Request, res: Response) => {
   }
 }
 
+const me = async (req: Request, res: Response) => {
+  try {
+    const school = await School.me(req.headers.schoolId as string);
+    school.rows[0].password = undefined;
+    school.rows[0].logo = school.rows[0].logo.url;
+    res.status(200).send(school.rows[0]);
+  } catch (err) {
+    res.status(400).send({
+      success: false,
+      message: ({ err: err })
+    });
+  }
+}
+
+
 const SchoolController = {
   registerNewSchool,
   login,
   listSchools,
   // schoolProfile,
   schoolDelete,
+  me,
 }
 
 export = SchoolController;

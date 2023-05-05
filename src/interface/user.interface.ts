@@ -20,7 +20,6 @@ interface UserType extends UserTypeEmpty {
   name: string;
   schoolId: number;
   classId: number;
-  registration: string;
   birthDate: Date;
   role: UserRoleEnum;
   phone: string;

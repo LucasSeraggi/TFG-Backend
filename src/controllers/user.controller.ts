@@ -31,7 +31,7 @@ const register = async (req: Request, res: Response) => {
     res.status(201).send({
       id: newUser.id,
       token: newUser.toTokenJwt,
-      message: `User '${newUser.name}' created with successfully.`,
+      message: `Usuário ${newUser.name} criado com matricula ${newUser.registration}`,
     });
   } catch (err) {
     res.status(400).send({

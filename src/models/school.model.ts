@@ -109,6 +109,26 @@ class School {
     static async validatePass(password: string, hash: string) {
         return bcrypt.compareSync(password, hash);
     }
+
+    static async me(schoolId: string) {
+        const values = [
+            schoolId
+        ];
+        const querySelectSchool = {
+            text: `
+                    SELECT * FROM schools
+                        where id = $1
+                `,
+            values,
+        }
+        try {
+            const schoolFind = await db.dbConn(querySelectSchool);
+            return schoolFind;
+        } catch (err: any) {
+            console.log(err);
+            throw err;
+        }
+    }
 }
 
 export = School;
