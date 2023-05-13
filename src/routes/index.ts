@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import { verifyToken } from '../middlewares/auth';
 
 const router = express.Router();
+const date = new Date();
 
 router.all('*', (req: Request, __: Response, next: any) => {
   console.info('\n\n');
@@ -15,6 +16,7 @@ router.get('/api', (_: any, res: Response) => {
     success: true,
     message: 'Bem Vindo!',
     version: '1.0.0',
+    date: date.toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
   });
 });
 

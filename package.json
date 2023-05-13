@@ -8,7 +8,8 @@
     "start": "ts-node server.ts",
     "build": "npx tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "prod": "node build/server.js"
   },
   "repository": {
     "type": "git",

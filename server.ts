@@ -1,7 +1,7 @@
 import app from './src/app'
 import { FirebaseConfig } from './src/services/firebase/config';
 
-const port = process.env.PORT || 3333
+const port = process.env.PORT || 8080;
 
 app.listen(port, () => {
   console.log('Server running in port ', port);
