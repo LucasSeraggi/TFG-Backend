@@ -82,7 +82,7 @@ const login = async (req: Request, res: Response) => {
     }
 
   } catch (err) {
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: ({ err: err })
     })
@@ -97,7 +97,7 @@ const listSchools = async (_: Request, res: Response) => {
       message: schools.rows
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: ({ err: err })
     });
@@ -127,7 +127,7 @@ const schoolDelete = async (req: Request, res: Response) => {
       message: `School ${deleteSchool.rows[0].name} deleted successfully.`
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: ({ err: err })
     });
