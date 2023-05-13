@@ -40,7 +40,7 @@ const registerNewSchool = async (req: Request, res: Response) => {
     });
 
   } catch (err) {
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: ({ err: err })
     })
@@ -74,7 +74,7 @@ const login = async (req: Request, res: Response) => {
         schoolId: schoolDb.rows[0].id,
         name: schoolDb.rows[0].name,
         email: req.body.email,
-        photoUrl: schoolDb.rows[0].logo.url,
+        photoUrl: schoolDb.rows[0].logo?.url,
         authRole: UserRoleEnum.ADMIN,
         token
       });
@@ -138,10 +138,10 @@ const me = async (req: Request, res: Response) => {
   try {
     const school = await School.me(req.headers.schoolId as string);
     school.rows[0].password = undefined;
-    school.rows[0].logo = school.rows[0].logo.url;
+    school.rows[0].logo = school.rows[0].logo?.url;
     res.status(200).send(school.rows[0]);
   } catch (err) {
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: ({ err: err })
     });
