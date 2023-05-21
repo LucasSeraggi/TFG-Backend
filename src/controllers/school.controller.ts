@@ -1,7 +1,7 @@
 import School from '../models/school.model';
 import { Request, Response } from "express";
 import { Storage, StorageType } from '../services/firebase/storage';
-import { UserRoleEnum } from '../interface/user_role.enum';
+// import { UserRoleEnum } from '../interface/user_role.enum';
 
 const registerNewSchool = async (req: Request, res: Response) => {
   try {
@@ -23,20 +23,22 @@ const registerNewSchool = async (req: Request, res: Response) => {
       req.body.newLogo = undefined;
       console.error(req.body);
     }
+    
+    const newSchool = new School({
+      name: req.body.name,
+      cnpj: req.body.cnpj,
+      cep: req.body.cep,
+      logo: req.body.logo,
+      phone: req.body.phone,
+      email: req.body.email,
+    }, req.body.password,);
 
-
-    const schoolCreate = await School.save(req);
-    const tokenJwt = School.generatorJwtToken(schoolCreate.rows[0].id, req.body.email);
+    await newSchool.save();
 
     res.status(201).send({
-      id: schoolCreate.rows[0].id,
-      message: `Escola ${schoolCreate.rows[0].name} criada com sucesso.`,
-      schoolId: schoolCreate.rows[0].id,
-      name: schoolCreate.rows[0].name,
-      email: req.body.email,
-      photoUrl: url,
-      authRole: UserRoleEnum.ADMIN,
-      token: tokenJwt,
+      id: newSchool.id,
+      token: newSchool.toTokenJwt,
+      message: `instituição ${newSchool.name} criado!`,
     });
 
   } catch (err) {
@@ -57,35 +59,30 @@ const login = async (req: Request, res: Response) => {
         .json({ error: "School email and password are required" });
     }
 
-    const schoolDb = await School.find(school.email);
-    if (schoolDb.rowCount == 0) {
+    const schoolDb = await School.find({ email: school.email }, true);
+    if (schoolDb.length == 0) {
       return res.status(401)
         .json({ error: "Email not registered", message: 'E-mail incorreto' });
+    } else if (schoolDb.length > 1) {
+      return res.status(401).json({ message: "Email duplicated" });
     }
 
-    const isValid = await School.validatePass(school.password, schoolDb.rows[0].password);
+    const scl = schoolDb[0];
+    const isValid = scl.validatePass(req.body.password);
 
     if (!isValid) {
       return res.status(401)
         .json({ error: "Unauthorized" });
     } else {
-      const token = School.generatorJwtToken(schoolDb.rows[0].id, req.body.email);
-      return res.status(200).json({
-        schoolId: schoolDb.rows[0].id,
-        name: schoolDb.rows[0].name,
-        email: req.body.email,
-        photoUrl: schoolDb.rows[0].logo?.url,
-        authRole: UserRoleEnum.ADMIN,
-        token
-      });
-
+      return res.json({
+        ...scl.toTokenInfo,
+        token: scl.toTokenJwt,
+      })
     }
-
   } catch (err) {
-    res.status(500).send({
-      success: false,
-      message: ({ err: err })
-    })
+    return res.status(400).json({
+      message: err
+    });
   }
 };
 
@@ -104,33 +101,23 @@ const listSchools = async (_: Request, res: Response) => {
   }
 }
 
-// const schoolProfile = async (req: Request, res: Response) => {
-//   try {
-//     const schoolProfile = await School.find(req);
-//     res.status(200).send({
-//       success: true,
-//       message: schoolProfile.rows
-//     });
-//   } catch (err) {
-//     res.status(400).send({
-//       success: false,
-//       message: ({ err: err })
-//     });
-//   }
-// }
-
 const schoolDelete = async (req: Request, res: Response) => {
   try {
-    const deleteSchool = await School.delete(req);
-    res.status(200).send({
-      success: true,
-      message: `School ${deleteSchool.rows[0].name} deleted successfully.`
+    const rowRemoved = await School.delete(
+      Number(req.params.id)
+    );
+    if (rowRemoved == 0) {
+      return res.status(404).send({
+        message: 'School not found.'
+      });
+    }
+    return res.status(200).send({
+      message: 'School removed successfully.'
     });
   } catch (err) {
-    res.status(500).send({
-      success: false,
-      message: ({ err: err })
-    });
+    res.status(400).send({
+      message: err
+    })
   }
 }
 
