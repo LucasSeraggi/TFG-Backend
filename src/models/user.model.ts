@@ -59,7 +59,7 @@ class User implements UserType {
       email: rowDb.email,
       cpf: rowDb.cpf,
       rg: rowDb.rg,
-      profile_picture: rowDb.profile_picture,
+      profile_picture: rowDb.profile_picture?.url,
       address: rowDb.address,
       createdAt: rowDb.created_at,
       updatedAt: rowDb.updated_at,

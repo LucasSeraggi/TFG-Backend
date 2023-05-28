@@ -91,12 +91,7 @@ const find = async (req: Request, res: Response) => {
       rg: req.query.rg ? String(req.query.rg) : undefined,
     });
 
-    if (user && user.length > 0)
-      return res.status(200).send(user.map(u => u.toResume(req.headers.role as UserRoleEnum)));
-
-    res.status(404).send({
-      message: 'User not found.'
-    });
+    return res.status(200).send(user.map(u => u.toResume(req.headers.role as UserRoleEnum)));
   } catch (err) {
     res.status(400).send({
       message: err
