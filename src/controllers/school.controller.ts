@@ -1,7 +1,6 @@
 import School from '../models/school.model';
 import { Request, Response } from "express";
 import { Storage, StorageType } from '../services/firebase/storage';
-// import { UserRoleEnum } from '../interface/user_role.enum';
 
 const registerNewSchool = async (req: Request, res: Response) => {
   try {
@@ -23,7 +22,7 @@ const registerNewSchool = async (req: Request, res: Response) => {
       req.body.newLogo = undefined;
       console.error(req.body);
     }
-    
+
     const newSchool = new School({
       name: req.body.name,
       cnpj: req.body.cnpj,
@@ -77,6 +76,8 @@ const login = async (req: Request, res: Response) => {
       return res.json({
         ...scl.toTokenInfo,
         token: scl.toTokenJwt,
+        name: scl.name,
+        photoUrl: scl.logo,
       })
     }
   } catch (err) {
