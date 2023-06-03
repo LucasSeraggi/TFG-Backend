@@ -215,6 +215,34 @@ class User implements UserType {
     }
   }
 
+  static async getPaginated(id: number, school_id: number, search: string, rowsPerPage: number, page: number): Promise<User | null> {
+    const values = [id, school_id, `%${search}%`, rowsPerPage, page];
+    const query = {
+      text: `
+              SELECT * FROM users
+              WHERE 
+                id = $1 AND
+                school_id = $2
+                registration ILIKE $3 OR classId ILIKE $1 OR email ILIKE $1 OR name ILIKE $1
+              LIMIT $4
+              OFFSET $5
+          `,
+      values,
+    }
+
+    try {
+      const row = await db.dbConn(query);
+
+      if (row.rows.length == 1) {
+        return User.createByDb(row.rows[0]);
+      }
+      return null;
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail;
+    }
+  }
+
   static async find({ classId, name, email, registration, schoolId, role }: UserTypeEmpty, isPassword = false): Promise<User[]> {
     const query = {
       text: `
