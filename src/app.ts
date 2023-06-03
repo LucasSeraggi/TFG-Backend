@@ -8,6 +8,7 @@ import SchoolRoutes from './routes/school.routes';
 import ClassRoutes from './routes/class.routes';
 import RoleRoutes from './routes/role.routes';
 import SubjectRoutes from './routes/subject.routes';
+import ResetPasswordRoutes from './routes/reset_password.routes';
 
 const app = express();
 // const databaseConnection = require('./config/databaseConnection.config');
@@ -26,6 +27,7 @@ app.use(SchoolRoutes);
 app.use(ClassRoutes);
 app.use(RoleRoutes);
 app.use(SubjectRoutes);
+app.use(ResetPasswordRoutes);
 
 // catch 404 and forward to error handler
 app.use(function (_, res, __) {

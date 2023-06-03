@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import { TokenJwt } from "../interface/global.interface";
-;
 
 const SECRET = process.env.JWT_SECRET || "secret";
 

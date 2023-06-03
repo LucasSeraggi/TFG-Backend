@@ -215,7 +215,7 @@ class User implements UserType {
     }
   }
 
-  static async find({ classId, name, email, registration, schoolId, role }: UserTypeEmpty, isPassword: boolean = false): Promise<User[]> {
+  static async find({ classId, name, email, registration, schoolId, role }: UserTypeEmpty, isPassword = false): Promise<User[]> {
     const query = {
       text: `
               SELECT * FROM users
@@ -259,7 +259,7 @@ class User implements UserType {
     }
 
     try {
-      let response = await db.dbConn(query);
+      const response = await db.dbConn(query);
       return response.rowCount;
     } catch (err: any) {
       console.error(err);
@@ -306,7 +306,7 @@ class User implements UserType {
     }
 
     try {
-      let response = await db.dbConn(query);
+      const response = await db.dbConn(query);
       return response.rowCount;
     } catch (err: any) {
       console.error(err);
@@ -331,6 +331,7 @@ class User implements UserType {
     return jwt.sign(this.toTokenInfo, SECRET);
     // return jwt.sign(this.toTokenInfo, SECRET, { expiresIn: '3h' });
   }
+
 }
 
 export = User;

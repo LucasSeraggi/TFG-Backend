@@ -15,13 +15,14 @@ router.get('/api/user', [verifyToken], userController.find); //add auth
 
 // Retorna dados do usuário logado
 router.get('/api/user/me', [verifyToken], userController.me);
+
 //Dados de um usuário especifico
 router.get('/api/user/:id', [verifyToken], userController.get);
 
 //Excluir usuário
 router.delete('/api/user/:id', [verifyToken], userController.remove);
 
-//Verica se usuario existe na base de dados
+//Verifica se usuario existe na base de dados
 router.get('/api/isNewUser/', [verifyToken], userController.isNewUser);
 
 export = router;
