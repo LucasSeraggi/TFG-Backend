@@ -121,11 +121,9 @@ const get = async (req: Request, res: Response) => {
 
 const getPaginated = async (req: Request, res: Response) => {
   try {
-
-
     const user = await User.getPaginated(
       Number(req.headers.schoolId),
-      String(req.body.search ?? ''),
+      String(req.body.search || ''),
       Number(req.body.rowsPerPage),
       Number(req.body.page)
     );
@@ -133,6 +131,7 @@ const getPaginated = async (req: Request, res: Response) => {
 
   } catch (err) {
     res.status(400).send({
+      data: [],
       message: err
     })
   }

@@ -222,10 +222,10 @@ class User implements UserType {
               SELECT * FROM users
               WHERE
                 school_id = $1 AND
-                (${Number(search) ? `class_id = ${Number(search)} AND` : ''}
-                ${search ? `email ILIKE '%${search}%' AND` : ''}
-                ${search ? `registration ILIKE '%${search}%' AND` : ''}
-                ${search ? `name ILIKE '%${search}%' AND` : ''}
+                (${Number(search) ? `class_id = ${Number(search)} OR` : ''}
+                ${search ? `email ILIKE '%${search}%' OR` : ''}
+                ${search ? `registration ILIKE '%${search}%' OR` : ''}
+                ${search ? `name ILIKE '%${search}%' OR` : ''}
                 true)
               LIMIT $2
               OFFSET $3
