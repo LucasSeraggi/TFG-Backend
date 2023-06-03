@@ -76,8 +76,8 @@ const login = async (req: Request, res: Response) => {
       return res.json({
         ...scl.toTokenInfo,
         token: scl.toTokenJwt,
-        name: scl.name,
-        photoUrl: scl.logo,
+        schoolName: scl.name,
+        schoolLogo: scl.logo?.url,
       })
     }
   } catch (err) {
@@ -129,7 +129,7 @@ const me = async (req: Request, res: Response) => {
     school.rows[0].logo = school.rows[0].logo?.url;
     res.status(200).send(school.rows[0]);
   } catch (err) {
-    res.status(500).send({
+    res.status(500).json({
       success: false,
       message: ({ err: err })
     });

@@ -14,7 +14,7 @@ class School implements SchoolType {
     id?: number;
     name?: string;
     cnpj?: string;
-    logo?: {};
+    logo?: { url?: string };
     // social/?: {};
     cep?: string;
     phone?: string;
@@ -34,7 +34,7 @@ class School implements SchoolType {
         this.updatedAt = updatedAt;
         this.password = password;
     }
-    
+
     static createByDb(rowDb: any, password?: string): School {
         return new School({
             id: rowDb.id,
@@ -51,9 +51,9 @@ class School implements SchoolType {
 
     async save(): Promise<void> {
         try {
-          this.password = await bcrypt.hash(this.password!, SALT_BCRYPT);
+            this.password = await bcrypt.hash(this.password!, SALT_BCRYPT);
         } catch (err) {
-          throw "password invalid";
+            throw "password invalid";
         }
 
         const values = [
@@ -80,12 +80,12 @@ class School implements SchoolType {
         };
 
         try {
-          const schoolCreate = await db.dbConn(queryInsertSchool);
-          this.id = schoolCreate.rows[0].id;
-          return schoolCreate
+            const schoolCreate = await db.dbConn(queryInsertSchool);
+            this.id = schoolCreate.rows[0].id;
+            return schoolCreate
         } catch (err: any) {
-          console.error(err);
-          throw err;
+            console.error(err);
+            throw err;
         }
     }
 
@@ -104,7 +104,7 @@ class School implements SchoolType {
         }
     }
 
-    static async find({ email }: SchoolTypeEmpty , isPassword: boolean = false) {
+    static async find({ email }: SchoolTypeEmpty, isPassword: boolean = false) {
         const values = [
             email
         ];
@@ -154,19 +154,19 @@ class School implements SchoolType {
     }
 
     validatePass(password: string) {
-      return bcrypt.compareSync(password, this.password!);
+        return bcrypt.compareSync(password, this.password!);
     }
 
     get toTokenInfo(): TokenJwt {
-      return {
-        schoolId: this.id!,
-        email: this.email!,
-        role: UserRoleEnum.ADMIN,// this.role,
-      }
+        return {
+            schoolId: this.id!,
+            email: this.email!,
+            role: UserRoleEnum.ADMIN,// this.role,
+        }
     }
-    
+
     get toTokenJwt(): string {
-      return jwt.sign(this.toTokenInfo, SECRET);
+        return jwt.sign(this.toTokenInfo, SECRET);
     }
 
     async update(): Promise<number> {
@@ -180,7 +180,7 @@ class School implements SchoolType {
             this.id,
         ];
         const query = {
-          text: `
+            text: `
                   UPDATE schools
                     SET
                       name = $1,
@@ -193,17 +193,17 @@ class School implements SchoolType {
                     WHERE 
                       id = $7
               `,
-          values,
+            values,
         }
-    
+
         try {
-          let response = await db.dbConn(query);
-          return response.rowCount;
+            let response = await db.dbConn(query);
+            return response.rowCount;
         } catch (err: any) {
-          console.error(err);
-          throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
+            console.error(err);
+            throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
         }
-      }
+    }
 
     static async me(schoolId: string) {
         const values = [

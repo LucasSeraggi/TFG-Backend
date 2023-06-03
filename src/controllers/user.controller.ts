@@ -121,19 +121,16 @@ const get = async (req: Request, res: Response) => {
 
 const getPaginated = async (req: Request, res: Response) => {
   try {
+
+
     const user = await User.getPaginated(
-      Number(req.body.schoolId),
-      String(req.body.search),
+      Number(req.headers.schoolId),
+      String(req.body.search ?? ''),
       Number(req.body.rowsPerPage),
       Number(req.body.page)
     );
+    return res.status(200).json(user.map(u => u.toResume(req.headers.role as UserRoleEnum)));
 
-    const role = (Number(req.params.id) == user?.id) ? UserRoleEnum.ADMIN : req.headers.role;
-    if (user) return res.status(200).send(user.toResume(role as UserRoleEnum));
-
-    res.status(404).send({
-      message: 'User not found.'
-    });
   } catch (err) {
     res.status(400).send({
       message: err

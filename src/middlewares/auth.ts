@@ -5,37 +5,44 @@ import { TokenJwt } from "../interface/global.interface";
 const SECRET = process.env.JWT_SECRET || "secret";
 
 const verifyToken = (req: Request, res: Response, next: any) => {
-    const token: string = req.headers.authorization || '';
+    try {
+        const token: string = req.headers.authorization || '';
 
-    if (req.headers['user-id']) {
-        req.headers.userId = req.headers['user-id'];
-        req.headers.schoolId = req.headers['school-id'];
+        if (req.headers['user-id']) {
+            req.headers.userId = req.headers['user-id'];
+            req.headers.schoolId = req.headers['school-id'];
+            return next();
+        }
+
+        if (!token) {
+            return res.status(401).json({
+                message: "No token provided!",
+            });
+        }
+
+        const info = jwt.verify(token, SECRET) as TokenJwt;
+        const lastTimeOk = (Date.now() / 1000) - (3600 * 3); // 3 horas
+
+        if (!info || !info.iat || info.iat < lastTimeOk) {
+            return res.status(401).json({
+                message: "Unauthorized!",
+            });
+        }
+        console.info(info);
+
+        req.headers.userId = info.userId?.toString();
+        req.headers.schoolId = info.schoolId?.toString();
+        req.headers.iat = info.iat?.toString();
+        req.headers.email = info.email;
+        req.headers.role = info.role;
+
         return next();
-    }
 
-    if (!token) {
-        return res.status(401).send({
-            message: "No token provided!",
-        });
-    }
-
-    const info = jwt.verify(token, SECRET) as TokenJwt;
-    const lastTimeOk = (Date.now() / 1000) - (3600 * 3); // 3 horas
-
-    if (!info || !info.iat || info.iat < lastTimeOk) {
-        return res.status(401).send({
+    } catch (err) {
+        return res.status(401).json({
             message: "Unauthorized!",
         });
     }
-    console.info(info);
-
-    req.headers.userId = info.userId?.toString();
-    req.headers.schoolId = info.schoolId?.toString();
-    req.headers.iat = info.iat?.toString();
-    req.headers.email = info.email;
-    req.headers.role = info.role;
-
-    return next();
 };
 
 // const isAdmin = async (req: Request, res: Response, next: any) => {

@@ -215,8 +215,8 @@ class User implements UserType {
     }
   }
 
-  static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<User | null> {
-    const values = [school_id, search, rowsPerPage, page, rowsPerPage*(page-1)];
+  static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<User[]> {
+    const values = [school_id, rowsPerPage, rowsPerPage * (page - 1)];
     const query = {
       text: `
               SELECT * FROM users
@@ -225,21 +225,24 @@ class User implements UserType {
                 (${Number(search) ? `class_id = ${Number(search)} AND` : ''}
                 ${search ? `email ILIKE '%${search}%' AND` : ''}
                 ${search ? `registration ILIKE '%${search}%' AND` : ''}
-                ${search ? `name ILIKE '%${search}%' AND` : ''})
-                true
-              LIMIT $3
-              OFFSET $5
+                ${search ? `name ILIKE '%${search}%' AND` : ''}
+                true)
+              LIMIT $2
+              OFFSET $3
           `,
       values,
     }
 
     try {
-      const row = await db.dbConn(query);
+      const rows = await db.dbConn(query);
+      if (!rows || rows.rows.length == 0) return [];
 
-      if (row.rows.length == 1) {
-        return User.createByDb(row.rows[0]);
+      const subjects: User[] = [];
+      for (const iterator of rows.rows) {
+        subjects.push(User.createByDb(iterator, undefined));
       }
-      return null;
+
+      return subjects;
     } catch (err: any) {
       console.error(err);
       throw err.detail;
