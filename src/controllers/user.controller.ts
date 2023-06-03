@@ -122,11 +122,10 @@ const get = async (req: Request, res: Response) => {
 const getPaginated = async (req: Request, res: Response) => {
   try {
     const user = await User.getPaginated(
-      Number(req.params.id),
-      Number(req.params.schoolId),
-      String(req.params.search),
-      Number(req.params.rowsPerPage),
-      Number(req.params.page)
+      Number(req.body.schoolId),
+      String(req.body.search),
+      Number(req.body.rowsPerPage),
+      Number(req.body.page)
     );
 
     const role = (Number(req.params.id) == user?.id) ? UserRoleEnum.ADMIN : req.headers.role;

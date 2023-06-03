@@ -215,16 +215,14 @@ class User implements UserType {
     }
   }
 
-  static async getPaginated(id: number, school_id: number, search: string, rowsPerPage: number, page: number): Promise<User | null> {
-    const values = [id, school_id, `%${search}%`, rowsPerPage, page];
+  static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<User | null> {
+    const values = [school_id, `%${search}%`, rowsPerPage, page, rowsPerPage*(page-1)];
     const query = {
       text: `
               SELECT * FROM users
-              WHERE 
-                id = $1 AND
-                school_id = $2
-                registration ILIKE $3 OR classId ILIKE $1 OR email ILIKE $1 OR name ILIKE $1
-              LIMIT $4
+              WHERE
+                school_id = $1 AND (registration ILIKE %${search}% OR email ILIKE %${search}% OR name ILIKE %${search}%)
+              LIMIT $3
               OFFSET $5
           `,
       values,
