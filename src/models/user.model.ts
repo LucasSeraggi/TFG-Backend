@@ -223,9 +223,9 @@ class User implements UserType {
               WHERE
                 school_id = $1 AND
                 (${Number(search) ? `class_id = ${Number(search)} AND` : ''}
-                ${search ? `email ILIKE %${search}% AND` : ''}
-                ${search ? `registration ILIKE %${search}% AND` : ''}
-                ${search ? `name ILIKE %${search}% AND` : ''})
+                ${search ? `email ILIKE '%${search}%' AND` : ''}
+                ${search ? `registration ILIKE '%${search}%' AND` : ''}
+                ${search ? `name ILIKE '%${search}%' AND` : ''})
                 true
               LIMIT $3
               OFFSET $5
