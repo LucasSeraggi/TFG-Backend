@@ -215,7 +215,10 @@ class User implements UserType {
     }
   }
 
-  static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<User[]> {
+  static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<{
+    data: User[],
+    total_count: number,
+  }> {
     const values = [school_id, rowsPerPage, rowsPerPage * (page - 1)];
     const query = {
       text: `SELECT *,
@@ -242,14 +245,16 @@ class User implements UserType {
 
     try {
       const rows = await db.dbConn(query);
-      if (!rows || rows.rows.length == 0) return [];
+      if (!rows || rows.rows.length == 0) return { data: [], total_count: 0 };
+      console.log(rows.rows);
 
       const subjects: User[] = [];
       for (const iterator of rows.rows) {
         subjects.push(User.createByDb(iterator, undefined));
       }
+      const totalCount = rows[0].total_count;
 
-      return subjects;
+      return { data: subjects, total_count: totalCount };
     } catch (err: any) {
       console.error(err);
       throw err.detail;

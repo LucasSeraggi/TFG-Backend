@@ -121,13 +121,13 @@ const get = async (req: Request, res: Response) => {
 
 const getPaginated = async (req: Request, res: Response) => {
   try {
-    const user = await User.getPaginated(
+    const  { data, total_count } = await User.getPaginated(
       Number(req.headers.schoolId),
       String(req.params.search || ''),
       Number(req.params.rowsPerPage),
       Number(req.params.page)
     );
-    return res.status(200).json(user.map(u => u.toResume(req.headers.role as UserRoleEnum)));
+    return res.status(200).json({ data: data.map(u => u.toResume(req.headers.role as UserRoleEnum)), total: total_count });
 
   } catch (err) {
     res.status(400).send({
