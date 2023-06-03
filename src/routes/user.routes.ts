@@ -13,6 +13,9 @@ router.post('/api/user/login', userController.login);
 //Dados de todos os usuários
 router.get('/api/user', [verifyToken], userController.find); //add auth
 
+//Dados de todos os usuários
+router.get('/api/user/paginated', [verifyToken], userController.getPaginated); //add auth
+
 // Retorna dados do usuário logado
 router.get('/api/user/me', [verifyToken], userController.me);
 
