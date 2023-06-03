@@ -123,9 +123,9 @@ const getPaginated = async (req: Request, res: Response) => {
   try {
     const user = await User.getPaginated(
       Number(req.headers.schoolId),
-      String(req.body.search || ''),
-      Number(req.body.rowsPerPage),
-      Number(req.body.page)
+      String(req.params.search || ''),
+      Number(req.params.rowsPerPage),
+      Number(req.params.page)
     );
     return res.status(200).json(user.map(u => u.toResume(req.headers.role as UserRoleEnum)));
 
