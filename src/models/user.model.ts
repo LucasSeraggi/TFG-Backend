@@ -216,7 +216,7 @@ class User implements UserType {
   }
 
   static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<User | null> {
-    const values = [school_id, `%${search}%`, rowsPerPage, page, rowsPerPage*(page-1)];
+    const values = [school_id, search, rowsPerPage, page, rowsPerPage*(page-1)];
     const query = {
       text: `
               SELECT * FROM users
