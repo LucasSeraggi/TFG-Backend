@@ -59,6 +59,38 @@ const get = async (req: Request, res: Response) => {
   }
 };
 
+const getPaginated = async (req: Request, res: Response) => {
+  try {
+    const  { data, total_count } = await Class.getPaginated(
+      Number(req.headers.schoolId),
+      String(req.params.search || ''),
+      Number(req.params.rowsPerPage),
+      Number(req.params.page)
+    );
+
+    const students = await User.find({
+      schoolId: Number(req.headers.schoolId),
+      classId: Number(req.params.id),
+      role: UserRoleEnum.STUDENT,
+    });
+
+    if (data) {
+      return res.status(200).json({
+        ...data, total: total_count, students: students.map(student => student.toResume)
+      });
+    }
+
+    res.status(404).json({
+      message: 'Class not found.'
+    });
+  } catch (err) {
+    res.status(400).json({
+      data: [],
+      message: err
+    })
+  }
+};
+
 const find = async (req: Request, res: Response) => {
   try {
     const classes = await Class.find({

@@ -152,6 +152,46 @@ export class Class implements ClassType {
             throw err.detail;
         }
     }
+
+    static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<{
+        data: Class[],
+        total_count: number,
+      }> {
+        const values = [school_id, rowsPerPage, rowsPerPage * (page - 1)];
+        const query = {
+          text: `SELECT *,
+                    (SELECT COUNT(*) FROM classes WHERE
+                      school_id = $1 AND
+                      ${search ? `name ILIKE '%${search}%' OR` : ''}
+                      true) AS total_count
+                    FROM classes
+                    WHERE
+                      school_id = $1 AND
+                      (${search ? `name ILIKE '%${search}%' OR` : ''}
+                      true)
+                  LIMIT $2
+                  OFFSET $3
+              `,
+          values,
+        }
+    
+        try {
+          const rows = await db.dbConn(query);
+          if (!rows || rows.rows.length == 0) return { data: [], total_count: 0 };
+          console.log(rows.rows);
+    
+          const subjects: Class[] = [];
+          for (const iterator of rows.rows) {
+            subjects.push(Class.createByDb(iterator));
+          }
+          const totalCount = rows[0].total_count;
+    
+          return { data: subjects, total_count: totalCount };
+        } catch (err: any) {
+          console.error(err);
+          throw err.detail;
+        }
+      } 
 }
 
 // class Class {
