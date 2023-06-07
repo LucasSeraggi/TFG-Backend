@@ -122,6 +122,24 @@ const schoolDelete = async (req: Request, res: Response) => {
   }
 }
 
+const getPaginated = async (req: Request, res: Response) => {
+  try {
+    const  { data, total_count } = await School.getPaginated(
+      Number(req.headers.schoolId),
+      String(req.params.search || ''),
+      Number(req.params.rowsPerPage),
+      Number(req.params.page)
+    );
+    return res.status(200).json({ data, total: total_count });
+
+  } catch (err) {
+    res.status(400).json({
+      data: [],
+      message: err
+    })
+  }
+};
+
 const me = async (req: Request, res: Response) => {
   try {
     const school = await School.me(req.headers.schoolId as string);
@@ -141,6 +159,7 @@ const SchoolController = {
   registerNewSchool,
   login,
   listSchools,
+  getPaginated,
   // schoolProfile,
   schoolDelete,
   me,

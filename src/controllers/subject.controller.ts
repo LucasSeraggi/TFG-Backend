@@ -86,6 +86,24 @@ const get = async (req: Request, res: Response) => {
   }
 };
 
+const getPaginated = async (req: Request, res: Response) => {
+  try {
+    const  { data, total_count } = await Subject.getPaginated(
+      Number(req.headers.schoolId),
+      String(req.params.search || ''),
+      Number(req.params.rowsPerPage),
+      Number(req.params.page)
+    );
+    return res.status(200).json({ data: data, total: total_count });
+
+  } catch (err) {
+    res.status(400).json({
+      data: [],
+      message: err
+    })
+  }
+};
+
 const find = async (req: Request, res: Response) => {
   try {
     const subject = await Subject.find({
@@ -132,6 +150,7 @@ const remove = async (req: Request, res: Response) => {
 
 const SubjectController = {
   register,
+  getPaginated,
   get,
   find,
   remove,

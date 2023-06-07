@@ -130,7 +130,7 @@ const getPaginated = async (req: Request, res: Response) => {
     return res.status(200).json({ data: data.map(u => u.toResume(req.headers.role as UserRoleEnum)), total: total_count });
 
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       data: [],
       message: err
     })

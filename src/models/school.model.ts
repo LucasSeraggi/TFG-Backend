@@ -104,6 +104,53 @@ class School implements SchoolType {
         }
     }
 
+    static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<{
+        data: School[],
+        total_count: number,
+      }> {
+        const values = [school_id, rowsPerPage, rowsPerPage * (page - 1)];
+        const query = {
+          text: `SELECT *,
+                    (SELECT COUNT(*) FROM schools WHERE
+                      school_id = $1 AND
+                      ${search ? `name ILIKE '%${search}%' OR` : ''}
+                      ${search ? `cnpj ILIKE '%${search}%' OR` : ''}
+                      ${search ? `cep ILIKE '%${search}%' OR` : ''}
+                      ${search ? `phone ILIKE '%${search}%' OR` : ''}
+                      ${search ? `email ILIKE '%${search}%' OR` : ''}
+                      true) AS total_count
+                    FROM schools
+                    WHERE
+                      school_id = $1 AND
+                      ${search ? `name ILIKE '%${search}%' OR` : ''}
+                      ${search ? `cnpj ILIKE '%${search}%' OR` : ''}
+                      ${search ? `cep ILIKE '%${search}%' OR` : ''}
+                      ${search ? `phone ILIKE '%${search}%' OR` : ''}
+                      ${search ? `email ILIKE '%${search}%' OR` : ''}
+                      true)
+                  LIMIT $2
+                  OFFSET $3
+              `,
+          values,
+        }
+    
+        try {
+          const rows = await db.dbConn(query);
+          if (!rows || rows.rows.length == 0) return { data: [], total_count: 0 };
+    
+          const subjects: School[] = [];
+          for (const iterator of rows.rows) {
+            subjects.push(School.createByDb(iterator));
+          }
+          const totalCount = rows[0].total_count;
+    
+          return { data: subjects, total_count: totalCount };
+        } catch (err: any) {
+          console.error(err);
+          throw err.detail;
+        }
+    }
+
     static async find({ email }: SchoolTypeEmpty, isPassword: boolean = false) {
         const values = [
             email

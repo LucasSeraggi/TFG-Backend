@@ -87,6 +87,49 @@ export class Subject implements SubjectType {
     }
   }
 
+  static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<{
+    data: Subject[],
+    total_count: number,
+  }> {
+    const values = [school_id, rowsPerPage, rowsPerPage * (page - 1)];
+    const query = {
+      text: `SELECT *,
+                (SELECT COUNT(*) FROM subjects WHERE
+                  school_id = $1 AND
+                  ${Number(search) ? `class_id = ${Number(search)} OR` : ''}
+                  ${Number(search) ? `teacher_id = ${Number(search)} OR` : ''}
+                  ${search ? `name ILIKE '%${search}%' OR` : ''}
+                  true) AS total_count
+                FROM subjects
+                WHERE
+                  school_id = $1 AND
+                  (${Number(search) ? `class_id = ${Number(search)} OR` : ''}
+                  ${Number(search) ? `teacher_id = ${Number(search)} OR` : ''}
+                  ${search ? `name ILIKE '%${search}%' OR` : ''}
+                  true)
+              LIMIT $2
+              OFFSET $3
+          `,
+      values,
+    }
+
+    try {
+      const rows = await db.dbConn(query);
+      if (!rows || rows.rows.length == 0) return { data: [], total_count: 0 };
+
+      const subjects: Subject[] = [];
+      for (const iterator of rows.rows) {
+        subjects.push(Subject.createByDb(iterator));
+      }
+      const totalCount = rows[0].total_count;
+
+      return { data: subjects, total_count: totalCount };
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail;
+    }
+  }
+
   static async find({ classId, schoolId, name, teacherId }: SubjectTypeEmpty): Promise<Subject[]> {
     const query = {
       text: `

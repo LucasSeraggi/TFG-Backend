@@ -169,6 +169,6 @@ const update = async (req: Request, res: Response) => {
 };
 
 
-const ClassController = { register, get, find, remove, update }
+const ClassController = { register, get, find, remove, update, getPaginated }
 
 export = ClassController;
