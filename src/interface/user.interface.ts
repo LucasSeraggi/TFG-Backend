@@ -12,7 +12,7 @@ interface UserTypeEmpty extends GlobalType {
   email?: string;
   cpf?: string;
   rg?: string;
-  profile_picture?: {}
+  profile_picture?: string;
   address?: string;
 }
 

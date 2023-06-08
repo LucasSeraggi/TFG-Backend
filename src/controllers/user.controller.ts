@@ -1,6 +1,7 @@
 import { UserRoleEnum } from '../interface/user_role.enum';
 import User from '../models/user.model';
 import { Request, Response } from "express";
+import School from '../models/school.model';
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -11,7 +12,6 @@ const register = async (req: Request, res: Response) => {
 
     const newUser = new User({
       schoolId: Number(req.headers.schoolId),
-
       classId: req.body.class_id,
       name: req.body.name,
       registration: req.body.registration,
@@ -57,6 +57,7 @@ const login = async (req: Request, res: Response) => {
     }
 
     const user = users[0];
+    const userSchool = await School.me(user.schoolId.toString());
     const isValid = user.validatePass(req.body.password);
 
     if (!isValid) {
@@ -65,6 +66,8 @@ const login = async (req: Request, res: Response) => {
     } else {
       return res.json({
         ...user.toTokenInfo,
+        schoolName: userSchool.rows[0].name,
+        schoolLogo: userSchool.rows[0].logo.url,
         token: user.toTokenJwt,
       });
     }
