@@ -215,23 +215,25 @@ class User implements UserType {
     }
   }
 
-  static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<{
+  static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number, role: UserRoleEnum): Promise<{
     data: User[],
     total_count: number,
   }> {
-    const values = [school_id, rowsPerPage, rowsPerPage * (page - 1)];
+    const values = [school_id, rowsPerPage, rowsPerPage * (page - 1), role];
     const query = {
       text: `SELECT *,
                 (SELECT COUNT(*) FROM users WHERE
                   school_id = $1 AND
-                  ${Number(search) ? `class_id = ${Number(search)} OR` : ''}
+                  role = $4 AND
+                  (${Number(search) ? `class_id = ${Number(search)} OR` : ''}
                   ${search ? `email ILIKE '%${search}%' OR` : ''}
                   ${search ? `registration ILIKE '%${search}%' OR` : ''}
                   ${search ? `name ILIKE '%${search}%' OR` : ''}
-                  true) AS total_count
+                  true)) AS total_count
                 FROM users
                 WHERE
                   school_id = $1 AND
+                  role = $4 AND
                   (${Number(search) ? `class_id = ${Number(search)} OR` : ''}
                   ${search ? `email ILIKE '%${search}%' OR` : ''}
                   ${search ? `registration ILIKE '%${search}%' OR` : ''}
@@ -246,15 +248,13 @@ class User implements UserType {
     try {
       const rows = await db.dbConn(query);
       if (!rows || rows.rows.length == 0) return { data: [], total_count: 0 };
-      console.log(rows.rows);
 
       const subjects: User[] = [];
       for (const iterator of rows.rows) {
-        subjects.push(User.createByDb(iterator, undefined));
+        subjects.push(User.createByDb(iterator));
       }
-      const totalCount = rows[0].total_count;
 
-      return { data: subjects, total_count: totalCount };
+      return { data: subjects, total_count: rows.rows[0].total_count };
     } catch (err: any) {
       console.error(err);
       throw err.detail;
