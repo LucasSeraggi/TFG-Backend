@@ -105,3 +105,17 @@ CREATE TABLE IF NOT EXISTS grades (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     PRIMARY KEY (id)
 );
+
+DROP TABLE IF EXISTS news;
+
+CREATE TABLE IF NOT EXISTS news (
+    id SERIAL NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description VARCHAR(1000),
+    school_id INT NOT NULL REFERENCES schools (id),
+    class_id INT NOT NULL REFERENCES classes (id),
+    subject_id INT NOT NULL REFERENCES subjects (id),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    PRIMARY KEY (id)
+);

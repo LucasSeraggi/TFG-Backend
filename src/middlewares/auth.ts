@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { TokenJwt } from "../interface/global.interface";
+import { TokenJwtUser } from "../interface/global.interface";
 
 const SECRET = process.env.JWT_SECRET || "secret";
 
@@ -20,7 +20,7 @@ const verifyToken = (req: Request, res: Response, next: any) => {
             });
         }
 
-        const info = jwt.verify(token, SECRET) as TokenJwt;
+        const info = jwt.verify(token, SECRET) as TokenJwtUser;
         const lastTimeOk = (Date.now() / 1000) - (3600 * 3); // 3 horas
 
         if (!info || !info.iat || info.iat < lastTimeOk) {

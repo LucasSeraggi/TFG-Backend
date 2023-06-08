@@ -113,7 +113,7 @@ const find = async (req: Request, res: Response) => {
       name: req.query.name ? String(req.query.name) : undefined,
     });
     console.log(subject);
-    if (subject && subject.length > 0) return res.status(200).send(subject);
+    if (subject) return res.status(200).send(subject);
     res.status(404).send({
       message: 'Subject not found.'
     });

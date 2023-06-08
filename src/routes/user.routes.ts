@@ -26,6 +26,6 @@ router.get('/api/user/:id', [verifyToken], userController.get);
 router.delete('/api/user/:id', [verifyToken], userController.remove);
 
 //Verifica se usuario existe na base de dados
-router.get('/api/isNewUser/', [verifyToken], userController.isNewUser);
+router.get('/api/is-new-user/', [verifyToken], userController.isNewUser);
 
 export = router;

@@ -9,7 +9,18 @@ interface GlobalType {
   page?: number;
 }
 
-interface TokenJwt {
+interface TokenJwtUser {
+  userId?: number;
+  schoolId: number;
+  userName: string;
+  email: string;
+  role: UserRoleEnum;
+  iat?: number;
+  userPhoto?: string;
+  classId: number;
+}
+
+interface TokenJwtSchool {
   userId?: number;
   schoolId: number;
   email: string;
@@ -17,4 +28,4 @@ interface TokenJwt {
   iat?: number;
 }
 
-export { TokenJwt, GlobalType }
+export { TokenJwtUser, TokenJwtSchool, GlobalType }
