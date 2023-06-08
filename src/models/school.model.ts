@@ -1,34 +1,90 @@
 import db from '../config/databaseConnection.config';
-import { Request, Response } from "express";
+import { Request } from "express";
+import bcrypt from 'bcryptjs';
+import jwt from "jsonwebtoken";
+import { SchoolType, SchoolTypeEmpty } from '../interface/school.interface';
+import { TokenJwt } from "../interface/global.interface";
+import { UserRoleEnum } from '../interface/user_role.enum';
 
-class School {
-    static async save(req: Request) {
+const SECRET = process.env.JWT_SECRET || "secret";
+const SALT_BCRYPT = Number(process.env.SALT_BCRYPT) || 10;
+
+class School implements SchoolType {
+    private password?: string;
+    id?: number;
+    name?: string;
+    cnpj?: string;
+    logo?: { url?: string };
+    // social/?: {};
+    cep?: string;
+    phone?: string;
+    email?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+
+    constructor({ id, name, cnpj, logo, cep, phone, email, createdAt, updatedAt }: SchoolType, password?: string) {
+        this.id = id;
+        this.name = name;
+        this.cnpj = cnpj;
+        this.logo = logo;
+        this.cep = cep;
+        this.phone = phone;
+        this.email = email;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.password = password;
+    }
+
+    static createByDb(rowDb: any, password?: string): School {
+        return new School({
+            id: rowDb.id,
+            name: rowDb.name,
+            cnpj: rowDb.cnpj,
+            logo: rowDb.logo,
+            cep: rowDb.cep,
+            phone: rowDb.phone,
+            email: rowDb.email,
+            createdAt: rowDb.created_at,
+            updatedAt: rowDb.updated_at,
+        }, password);
+    }
+
+    async save(): Promise<void> {
+        try {
+            this.password = await bcrypt.hash(this.password!, SALT_BCRYPT);
+        } catch (err) {
+            throw "password invalid";
+        }
+
         const values = [
-            req.body.name,
-            req.body.cnpj,
-            req.body.logo,
-            req.body.cep,
+            this.name,
+            this.cnpj,
+            this.logo,
+            this.cep,
+            this.email,
+            this.phone,
+            this.password,
         ];
 
         const queryInsertSchool = {
             text: `
-                    INSERT INTO schools (
-                        name, cnpj, logo, cep 
-                    )
-                    VALUES ($1, $2, $3, $4)
-                    RETURNING
-                        id,
-                        name
-                `,
+                   INSERT INTO schools (
+                       name, cnpj, logo, cep, email, phone, password
+                   )
+                   VALUES ($1, $2, $3, $4, $5, $6, $7)
+                   RETURNING
+                       id,
+                       name
+                 `,
             values,
         };
 
         try {
             const schoolCreate = await db.dbConn(queryInsertSchool);
+            this.id = schoolCreate.rows[0].id;
             return schoolCreate
-
         } catch (err: any) {
-            console.log(err)
+            console.error(err);
             throw err;
         }
     }
@@ -48,42 +104,168 @@ class School {
         }
     }
 
-    static async find(req: Request) {
+    static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<{
+        data: School[],
+        total_count: number,
+      }> {
+        const values = [school_id, rowsPerPage, rowsPerPage * (page - 1)];
+        const query = {
+          text: `SELECT *,
+                    (SELECT COUNT(*) FROM schools WHERE
+                      school_id = $1 AND
+                      ${search ? `name ILIKE '%${search}%' OR` : ''}
+                      ${search ? `cnpj ILIKE '%${search}%' OR` : ''}
+                      ${search ? `cep ILIKE '%${search}%' OR` : ''}
+                      ${search ? `phone ILIKE '%${search}%' OR` : ''}
+                      ${search ? `email ILIKE '%${search}%' OR` : ''}
+                      true) AS total_count
+                    FROM schools
+                    WHERE
+                      school_id = $1 AND
+                      ${search ? `name ILIKE '%${search}%' OR` : ''}
+                      ${search ? `cnpj ILIKE '%${search}%' OR` : ''}
+                      ${search ? `cep ILIKE '%${search}%' OR` : ''}
+                      ${search ? `phone ILIKE '%${search}%' OR` : ''}
+                      ${search ? `email ILIKE '%${search}%' OR` : ''}
+                      true)
+                  LIMIT $2
+                  OFFSET $3
+              `,
+          values,
+        }
+    
+        try {
+          const rows = await db.dbConn(query);
+          if (!rows || rows.rows.length == 0) return { data: [], total_count: 0 };
+    
+          const subjects: School[] = [];
+          for (const iterator of rows.rows) {
+            subjects.push(School.createByDb(iterator));
+          }
+          const totalCount = rows[0].total_count;
+    
+          return { data: subjects, total_count: totalCount };
+        } catch (err: any) {
+          console.error(err);
+          throw err.detail;
+        }
+    }
+
+    static async find({ email }: SchoolTypeEmpty, isPassword: boolean = false) {
         const values = [
-            req.query.name
+            email
         ];
         const querySelectSchool = {
             text: `
                     SELECT * FROM schools s
-                    where s.name = $1 
+                    where s.email = $1 
                 `,
             values,
         }
         try {
             const schoolFind = await db.dbConn(querySelectSchool);
-            return schoolFind;
+            if (!schoolFind || schoolFind.rows.length == 0) return [];
+            const subjects: School[] = [];
+            for (const iterator of schoolFind.rows) {
+                subjects.push(School.createByDb(iterator, isPassword ? iterator.password : undefined));
+            }
+            return subjects;
         } catch (err: any) {
             console.log(err);
             throw err;
         }
     }
 
-    static async delete(req: Request) {
-        const values = [
-            req.query.name
-        ];
+    static async delete(id: number) {
+        const values = [id];
         const queryDeleteSchool = {
             text: `
                     DELETE FROM schools s
-                    where s.name = $1
+                    where s.id = $1
                     RETURNING
-                        name
+                        id
                 `,
             values,
         }
         try {
-            const schoolDelete = await db.dbConn(queryDeleteSchool);
-            return schoolDelete;
+            const response = await db.dbConn(queryDeleteSchool);
+            return response;
+        } catch (err: any) {
+            console.log(err);
+            throw err;
+        }
+    }
+
+    static generatorJwtToken(schoolId: string, email: string) {
+        return jwt.sign({ email, schoolId }, SECRET);
+    }
+
+    validatePass(password: string) {
+        return bcrypt.compareSync(password, this.password!);
+    }
+
+    get toTokenInfo(): TokenJwt {
+        return {
+            schoolId: this.id!,
+            email: this.email!,
+            role: UserRoleEnum.ADMIN,// this.role,
+        }
+    }
+
+    get toTokenJwt(): string {
+        return jwt.sign(this.toTokenInfo, SECRET);
+    }
+
+    async update(): Promise<number> {
+        const values = [
+            this.name,
+            this.cnpj,
+            this.cep,
+            this.phone,
+            this.email,
+            this.logo,
+            this.id,
+        ];
+        const query = {
+            text: `
+                  UPDATE schools
+                    SET
+                      name = $1,
+                      cnpj = $2,
+                      cep = $3,
+                      phone = $4,
+                      email = $5,
+                      logo = $6,
+                      updated_at = NOW()
+                    WHERE 
+                      id = $7
+              `,
+            values,
+        }
+
+        try {
+            let response = await db.dbConn(query);
+            return response.rowCount;
+        } catch (err: any) {
+            console.error(err);
+            throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
+        }
+    }
+
+    static async me(schoolId: string) {
+        const values = [
+            schoolId
+        ];
+        const querySelectSchool = {
+            text: `
+                    SELECT * FROM schools
+                        where id = $1
+                `,
+            values,
+        }
+        try {
+            const schoolFind = await db.dbConn(querySelectSchool);
+            return schoolFind;
         } catch (err: any) {
             console.log(err);
             throw err;

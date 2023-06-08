@@ -1,39 +1,48 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
+import { TokenJwt } from "../interface/global.interface";
 
-// export = (req: Request, res: Response, next: any) => {
-//     try {
-//         const token: string = req.headers.authorization?.replace('Bearer ', '') || '';
-//         console.log(token);
-
-//         const decoded = jwt.verify(token, 'secret').toString();
-//         req.headers.userData = decoded;
-//         next();
-//     } catch (err) {
-//         return res.status(401).json({ message: 'Falha na autenticação!' });
-//     }
-// };
-
+const SECRET = process.env.JWT_SECRET || "secret";
 
 const verifyToken = (req: Request, res: Response, next: any) => {
-    const token: string = req.headers.token?.toString() || '';
+    try {
+        const token: string = req.headers.authorization || '';
 
-    if (!token) {
-        return res.status(403).send({
-            message: "No token provided!",
-        });
-    }
+        if (req.headers['user-id']) {
+            req.headers.userId = req.headers['user-id'];
+            req.headers.schoolId = req.headers['school-id'];
+            return next();
+        }
 
-    jwt.verify(token, 'secret', (err, decoded) => {
-        if (err || decoded === undefined || decoded === null || decoded === "") {
-            return res.status(401).send({
-                message: "Unauthorized!",
+        if (!token) {
+            return res.status(401).json({
+                message: "No token provided!",
             });
         }
 
-        req.headers.userId = decoded.toString();
-        next();
-    });
+        const info = jwt.verify(token, SECRET) as TokenJwt;
+        const lastTimeOk = (Date.now() / 1000) - (3600 * 3); // 3 horas
+
+        if (!info || !info.iat || info.iat < lastTimeOk) {
+            return res.status(401).json({
+                message: "Unauthorized!",
+            });
+        }
+        console.info(info);
+
+        req.headers.userId = info.userId?.toString();
+        req.headers.schoolId = info.schoolId?.toString();
+        req.headers.iat = info.iat?.toString();
+        req.headers.email = info.email;
+        req.headers.role = info.role;
+
+        return next();
+
+    } catch (err) {
+        return res.status(401).json({
+            message: "Unauthorized!",
+        });
+    }
 };
 
 // const isAdmin = async (req: Request, res: Response, next: any) => {
@@ -57,11 +66,8 @@ const verifyToken = (req: Request, res: Response, next: any) => {
 //     }
 // };
 
-
-
 const AuthJwt = {
     verifyToken,
-    // isAdmin,
 };
 
 export = AuthJwt;
