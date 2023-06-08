@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken";
 import db from '../config/databaseConnection.config';
 import { Request } from "express";
-import { TokenJwt } from "../interface/global.interface";
+import { TokenJwtUser } from "../interface/global.interface";
 import bcrypt from 'bcryptjs';
 import { UserType, UserTypeEmpty } from "../interface/user.interface";
 import { UserRoleEnum } from "../interface/user_role.enum";
@@ -22,7 +22,7 @@ class User implements UserType {
   email: string;
   cpf: string;
   rg: string;
-  profile_picture?: {}
+  profile_picture?: string
   address?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -268,12 +268,12 @@ class User implements UserType {
       const rows = await db.dbConn(query);
       if (!rows || rows.rows.length == 0) return [];
 
-      const subjects: User[] = [];
+      const users: User[] = [];
       for (const iterator of rows.rows) {
-        subjects.push(User.createByDb(iterator, isPassword ? iterator.password : undefined));
+        users.push(User.createByDb(iterator, isPassword ? iterator.password : undefined));
       }
 
-      return subjects;
+      return users;
     } catch (err: any) {
       console.error(err);
       throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
@@ -352,12 +352,15 @@ class User implements UserType {
     return bcrypt.compareSync(password, this.password!);
   }
 
-  get toTokenInfo(): TokenJwt {
+  get toTokenInfo(): TokenJwtUser {
     return {
       userId: this.id,
       schoolId: this.schoolId,
       email: this.email,
       role: this.role,
+      userName: this.name,
+      userPhoto: this.profile_picture,
+      classId: this.classId,
     }
   }
 

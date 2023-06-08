@@ -105,7 +105,7 @@ const listSchools = async (_: Request, res: Response) => {
 const schoolDelete = async (req: Request, res: Response) => {
   try {
     const rowRemoved = await School.delete(
-      Number(req.params.id)
+      Number(req.query.id)
     );
     if (rowRemoved == 0) {
       return res.status(404).send({

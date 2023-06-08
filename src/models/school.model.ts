@@ -3,7 +3,7 @@ import { Request } from "express";
 import bcrypt from 'bcryptjs';
 import jwt from "jsonwebtoken";
 import { SchoolType, SchoolTypeEmpty } from '../interface/school.interface';
-import { TokenJwt } from "../interface/global.interface";
+import { TokenJwtSchool } from "../interface/global.interface";
 import { UserRoleEnum } from '../interface/user_role.enum';
 
 const SECRET = process.env.JWT_SECRET || "secret";
@@ -104,7 +104,7 @@ class School implements SchoolType {
         }
     }
 
-    static async find({ email }: SchoolTypeEmpty, isPassword: boolean = false) {
+    static async find({ email }: SchoolTypeEmpty, isPassword = false) {
         const values = [
             email
         ];
@@ -157,7 +157,7 @@ class School implements SchoolType {
         return bcrypt.compareSync(password, this.password!);
     }
 
-    get toTokenInfo(): TokenJwt {
+    get toTokenInfo(): TokenJwtSchool {
         return {
             schoolId: this.id!,
             email: this.email!,
@@ -197,7 +197,7 @@ class School implements SchoolType {
         }
 
         try {
-            let response = await db.dbConn(query);
+            const response = await db.dbConn(query);
             return response.rowCount;
         } catch (err: any) {
             console.error(err);
