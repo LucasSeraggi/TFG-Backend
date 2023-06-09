@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS subjects (
     school_id INT NOT NULL REFERENCES schools (id),
     teacher_id INT NOT NULL REFERENCES users (id),
     class_id INT NOT NULL REFERENCES classes (id),
+    picture jsonb,
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,

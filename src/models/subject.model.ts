@@ -8,10 +8,15 @@ export class Subject implements SubjectType {
   teacherId: number;
   classId: number;
   name: string;
+  className?: string;
+  teacherName?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  picture?: string;
 
-  constructor({ schoolId, teacherId, name, createdAt, updatedAt, id, classId: classeId }: SubjectType) {
+  constructor({ schoolId, teacherId, name, createdAt, updatedAt, id, classId: classeId, className, teacherName, picture }: SubjectType) {
+    this.teacherName = teacherName;
+    this.className = className;
     this.schoolId = schoolId;
     this.teacherId = teacherId;
     this.classId = classeId;
@@ -19,6 +24,7 @@ export class Subject implements SubjectType {
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.id = id;
+    this.picture = picture;
   }
 
   static createByDb(rowDb: any): Subject {
@@ -30,6 +36,9 @@ export class Subject implements SubjectType {
       createdAt: rowDb.created_at,
       updatedAt: rowDb.updated_at,
       id: rowDb.id,
+      className: rowDb.class_name,
+      teacherName: rowDb.teacher_name,
+      picture: rowDb.picture?.url,
     });
   }
 
@@ -133,12 +142,16 @@ export class Subject implements SubjectType {
   static async find({ classId, schoolId, name, teacherId }: SubjectTypeEmpty): Promise<Subject[]> {
     const query = {
       text: `
-              SELECT * FROM subjects
+              SELECT s.*, c.name AS class_name, u.name as teacher_name FROM subjects s
+              LEFT JOIN classes c
+              ON s.class_id = c.id
+              LEFT JOIN users u
+              ON s.teacher_id = u.id
               WHERE 
-                ${classId ? `class_id = ${classId} AND` : ''}
-                ${teacherId ? `teacher_id = ${teacherId} AND` : ''}
-                ${name ? `name ILIKE '%${name}%' AND` : ''}
-                school_id = ${schoolId}
+                ${classId ? `s.class_id = ${classId} AND` : ''}
+                ${teacherId ? `s.teacher_id = ${teacherId} AND` : ''}
+                ${name ? `s.name ILIKE '%${name}%' AND` : ''}
+                s.school_id = ${schoolId}
           `,
     }
 
@@ -171,7 +184,7 @@ export class Subject implements SubjectType {
     }
 
     try {
-      let response = await db.dbConn(query);
+      const response = await db.dbConn(query);
       return response.rowCount;
     } catch (err: any) {
       console.error(err);
