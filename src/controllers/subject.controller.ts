@@ -112,7 +112,6 @@ const find = async (req: Request, res: Response) => {
       teacherId: req.query.teacher_id ? Number(req.query.teacher_id) : undefined,
       name: req.query.name ? String(req.query.name) : undefined,
     });
-    console.log(subject);
     if (subject) return res.status(200).send(subject);
     res.status(404).send({
       message: 'Subject not found.'
