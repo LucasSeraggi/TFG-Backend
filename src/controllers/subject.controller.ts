@@ -7,7 +7,7 @@ const register = async (req: Request, res: Response) => {
   try {
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
-      return res.status(401).send({ message: 'School id not match with user.' });
+      return res.status(401).json({ message: 'School id not match with user.' });
 
 
     const subject = new Subject({
@@ -19,13 +19,13 @@ const register = async (req: Request, res: Response) => {
 
     await subject.save();
 
-    res.status(201).send({
+    res.status(201).json({
       success: true,
       message: `Subject '${subject.name}' created with successfully.`,
       id: subject.id,
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })
@@ -35,10 +35,10 @@ const register = async (req: Request, res: Response) => {
 const update = async (req: Request, res: Response) => {
   try {
     if (!req.body.id)
-      return res.status(400).send({ message: 'Subject id is required.' });
+      return res.status(400).json({ message: 'Subject id is required.' });
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
-      return res.status(401).send({ message: 'School id not match with user.' });
+      return res.status(401).json({ message: 'School id not match with user.' });
 
 
     const subject = new Subject({
@@ -52,15 +52,15 @@ const update = async (req: Request, res: Response) => {
     const rowUpdated = await subject.update();
 
     if (rowUpdated == 0) {
-      return res.status(404).send({
+      return res.status(404).json({
         message: 'Subject not found.'
       });
     }
-    return res.status(200).send({
+    return res.status(200).json({
       message: 'Subject updated with successfully.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })
@@ -74,12 +74,12 @@ const get = async (req: Request, res: Response) => {
       Number(req.headers.schoolId)
     );
 
-    if (subject) return res.status(200).send(subject);
-    res.status(404).send({
+    if (subject) return res.status(200).json(subject);
+    res.status(404).json({
       message: 'Subject not found.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })
@@ -113,12 +113,12 @@ const find = async (req: Request, res: Response) => {
       name: req.query.name ? String(req.query.name) : undefined,
     });
     console.log(subject);
-    if (subject && subject.length > 0) return res.status(200).send(subject);
-    res.status(404).send({
+    if (subject && subject.length > 0) return res.status(200).json(subject);
+    res.status(404).json({
       message: 'Subject not found.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })
@@ -133,15 +133,15 @@ const remove = async (req: Request, res: Response) => {
     );
 
     if (rowRemoved == 0) {
-      return res.status(404).send({
+      return res.status(404).json({
         message: 'Subject not found.'
       });
     }
-    return res.status(200).send({
+    return res.status(200).json({
       message: 'Subject removed with successfully.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })

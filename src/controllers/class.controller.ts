@@ -7,7 +7,7 @@ const register = async (req: Request, res: Response) => {
   try {
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
-      return res.status(401).send({ message: 'School id not match with user.' });
+      return res.status(401).json({ message: 'School id not match with user.' });
 
 
     const newClass = new Class({
@@ -17,13 +17,13 @@ const register = async (req: Request, res: Response) => {
 
     await newClass.save();
 
-    res.status(201).send({
+    res.status(201).json({
       success: true,
       message: `Class '${newClass.name}' created with successfully.`,
       id: newClass.id,
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })
@@ -44,15 +44,15 @@ const get = async (req: Request, res: Response) => {
     });
 
     if (value) {
-      return res.status(200).send({
+      return res.status(200).json({
         ...value, students: students.map(student => student.toResume)
       });
     }
-    res.status(404).send({
+    res.status(404).json({
       message: 'Class not found.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })
@@ -98,12 +98,12 @@ const find = async (req: Request, res: Response) => {
       name: req.query.name ? String(req.query.name) : undefined,
     });
 
-    if (classes) return res.status(200).send(classes);
-    res.status(404).send({
+    if (classes) return res.status(200).json(classes);
+    res.status(404).json({
       message: 'Class not found.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })
@@ -118,15 +118,15 @@ const remove = async (req: Request, res: Response) => {
     });
 
     if (rowRemoved == 0) {
-      return res.status(404).send({
+      return res.status(404).json({
         message: 'Class not found.'
       });
     }
-    res.status(200).send({
+    res.status(200).json({
       message: 'Class removed with successfully.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })
@@ -137,10 +137,10 @@ const update = async (req: Request, res: Response) => {
   try {
 
     if (!req.body.id)
-      return res.status(400).send({ message: 'Class id is required.' });
+      return res.status(400).json({ message: 'Class id is required.' });
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
-      return res.status(401).send({ message: 'School id not match with user.' });
+      return res.status(401).json({ message: 'School id not match with user.' });
 
 
     const subject = new Class({
@@ -152,16 +152,16 @@ const update = async (req: Request, res: Response) => {
     const rowUpdated = await subject.update();
 
     if (rowUpdated == 0) {
-      return res.status(404).send({
+      return res.status(404).json({
         message: 'Class not found.'
       });
     }
-    res.status(200).send({
+    res.status(200).json({
       message: 'Class updated with successfully.'
     });
 
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       success: false,
       message: err
     })

@@ -41,19 +41,19 @@ const preResetPassword = async (req: Request, res: Response) => {
       };
       sgMail.send(email);
 
-      res.status(200).send({
+      res.status(200).json({
         error: false,
         message: 'E-mail enviado com sucesso',
       });
     } else {
-      res.status(200).send({
+      res.status(200).json({
         error: true,
         message: 'E-mail não encontrado na base de dados'
       })
     }
 
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       message: err
     });
   }
@@ -65,7 +65,7 @@ const resetPassword = async (req: Request, res: Response) => {
     const newPassword = await bcrypt.hash(req.body.newPassword, SALT_BCRYPT);
     const resultInfoByToken = await resetPassword.getInfoByToken(req.body.resetToken);
     if(resultInfoByToken === null) {
-      res.status(200).send({
+      res.status(200).json({
         error: true,
         message: 'Token expirado ou inexistente. Por favor, solicite uma nova troca de senha.',
       });
@@ -74,7 +74,7 @@ const resetPassword = async (req: Request, res: Response) => {
     const isTokenExpired = await resetPassword.isTokenExpired(new Date(resultInfoByToken.resetTokenCreatedAt), 5);
 
     if (isTokenExpired) {
-      res.status(200).send({
+      res.status(200).json({
         error: true,
         message: 'Token expirado. Por favor, solicite uma nova troca de senha.',
       });
@@ -82,12 +82,12 @@ const resetPassword = async (req: Request, res: Response) => {
       const result = await resetPassword.changePassword(resultInfoByToken.email, resultInfoByToken.isSchool, newPassword,);
 
       if (result !== 0) {
-        res.status(200).send({
+        res.status(200).json({
           error: false,
           message: 'Senha alterada com sucesso',
         });
       } else {
-        res.status(200).send({
+        res.status(200).json({
           error: true,
           message: 'Ocorreu um erro! Tente mais tarde.',
         });
@@ -95,7 +95,7 @@ const resetPassword = async (req: Request, res: Response) => {
     }
 
   } catch (err) {
-    res.status(400).send({
+    res.status(400).json({
       message: err
     });
   }
