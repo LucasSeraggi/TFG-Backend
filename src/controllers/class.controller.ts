@@ -2,12 +2,13 @@ import { Class } from '../models/class.model';
 import { Request, Response } from "express";
 import User from '../models/user.model';
 import { UserRoleEnum } from '../interface/user_role.enum';
+import { Subject } from "../models/subject.model";
 
 const register = async (req: Request, res: Response) => {
   try {
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
-      return res.status(401).send({ message: 'School id not match with user.' });
+      return res.status(401).json({ message: 'School id not match with user.' });
 
 
     const newClass = new Class({
@@ -17,13 +18,31 @@ const register = async (req: Request, res: Response) => {
 
     await newClass.save();
 
-    res.status(201).send({
+    if (req.body.subjects && req.body.subjects.length > 0) {
+      for (let index = 0; index < req.body.subjects.length; index++) {
+        try {
+          const element = req.body.subjects[index];
+          const obj = new Subject({
+            schoolId: Number(req.headers.schoolId),
+            classId: newClass.id!,
+            name: element.name,
+            teacherId: element.teacherId,
+          });
+
+          await obj.save();
+        } catch (error) {
+          console.error('Matéria não cadastrada!', error);
+        }
+      }
+    }
+
+    res.status(201).json({
       success: true,
       message: `Class '${newClass.name}' created with successfully.`,
       id: newClass.id,
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       success: false,
       message: err
     })
@@ -32,27 +51,34 @@ const register = async (req: Request, res: Response) => {
 
 const get = async (req: Request, res: Response) => {
   try {
-    const value = await Class.get({
-      id: Number(req.params.id),
-      schoolId: Number(req.headers.schoolId)
-    });
-
-    const students = await User.find({
-      schoolId: Number(req.headers.schoolId),
-      classId: Number(req.params.id),
-      role: UserRoleEnum.STUDENT,
-    });
+    const [value, students, subjects] = await Promise.all([
+      Class.get({
+        id: Number(req.params.id),
+        schoolId: Number(req.headers.schoolId)
+      }),
+      User.find({
+        schoolId: Number(req.headers.schoolId),
+        classId: Number(req.params.id),
+        role: UserRoleEnum.STUDENT,
+      }),
+      Subject.find({
+        schoolId: Number(req.headers.schoolId),
+        classId: Number(req.params.id),
+      })
+    ]);
 
     if (value) {
-      return res.status(200).send({
-        ...value, students: students.map(student => student.toResume)
+      return res.status(200).json({
+        ...value,
+        subjects,
+        students: students.map(student => student.toResume),
       });
     }
-    res.status(404).send({
+    res.status(404).json({
       message: 'Class not found.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       success: false,
       message: err
     })
@@ -61,7 +87,7 @@ const get = async (req: Request, res: Response) => {
 
 const getPaginated = async (req: Request, res: Response) => {
   try {
-    const  { data, total_count } = await Class.getPaginated(
+    const { data, total_count } = await Class.getPaginated(
       Number(req.headers.schoolId),
       String(req.params.search || ''),
       Number(req.params.rowsPerPage),
