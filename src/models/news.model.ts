@@ -62,4 +62,51 @@ export class News implements NewsType {
       throw err.detail;
     }
   }
+
+  async update(): Promise<number> {
+    const values = [this.title, this.description, this.schoolId, this.classId, this.subjectId, this.id];
+    const query = {
+      text: `
+              UPDATE users
+                SET
+                  title = $1,
+                  description = $3,
+                  classId = $4,
+                  subjectId = $5
+                  updated_at = NOW()
+                WHERE 
+                  id = $6 AND school_id = $3
+          `,
+      values,
+    }
+
+    try {
+      const response = await db.dbConn(query);
+      return response.rowCount;
+    } catch (err: any) {
+      console.error(err);
+      throw err.detail;
+    }
+  }
+
+  static async remove(id: number, school_id: number): Promise<number> {
+    const values = [id, school_id];
+    const query = {
+      text: `
+            DELETE FROM news
+            WHERE 
+              id = $1 AND
+              school_id = $2
+          `,
+      values,
+    }
+
+    try {
+      const response = await db.dbConn(query);
+      return response.rowCount;
+    } catch (err: any) {
+      console.error(err);
+      throw err;
+    }
+  }
 }

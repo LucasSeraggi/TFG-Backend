@@ -10,11 +10,11 @@ interface NewsTypeEmpty extends GlobalType {
 }
 
 interface NewsType extends NewsTypeEmpty {
-    title: string;
-    description: string;
-    schoolId: number;
-    subjectId: number;
-    classId: number;
+  title: string;
+  description: string;
+  schoolId: number;
+  subjectId: number;
+  classId: number;
 }
 
 export { NewsType, NewsTypeEmpty };
