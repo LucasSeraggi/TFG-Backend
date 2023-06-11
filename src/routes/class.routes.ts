@@ -9,6 +9,7 @@ router.post('/api/class/register', [verifyToken], classController.register);
 
 //Dados de todas as classes
 router.get('/api/class', [verifyToken], classController.find);
+router.get('/api/class/paginated', [verifyToken], classController.getPaginated);
 router.get('/api/class/:id', [verifyToken], classController.get);
 
 //Excluir class

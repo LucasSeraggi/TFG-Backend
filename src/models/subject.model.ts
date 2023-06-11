@@ -62,8 +62,8 @@ export class Subject implements SubjectType {
     }
   }
 
-  static async get(id: number, school_id: number): Promise<Subject | null> {
-    const values = [id, school_id];
+  static async get({ id, schoolId }: SubjectTypeEmpty): Promise<Subject | null> {
+    const values = [id, schoolId];
     const query = {
       text: `
               SELECT * FROM subjects

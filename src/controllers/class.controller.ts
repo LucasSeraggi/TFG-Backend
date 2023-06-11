@@ -89,20 +89,14 @@ const getPaginated = async (req: Request, res: Response) => {
   try {
     const { data, total_count } = await Class.getPaginated(
       Number(req.headers.schoolId),
-      String(req.params.search || ''),
-      Number(req.params.rowsPerPage),
-      Number(req.params.page)
+      String(req.query.search || ''),
+      Number(req.query.rowsPerPage || 10),
+      Number(req.query.page || 1)
     );
-
-    const students = await User.find({
-      schoolId: Number(req.headers.schoolId),
-      classId: Number(req.params.id),
-      role: UserRoleEnum.STUDENT,
-    });
 
     if (data) {
       return res.status(200).json({
-        ...data, total: total_count, students: students.map(student => student.toResume)
+        data, total: +total_count
       });
     }
 
@@ -110,7 +104,7 @@ const getPaginated = async (req: Request, res: Response) => {
       message: 'Class not found.'
     });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       data: [],
       message: err
     })
@@ -169,19 +163,93 @@ const update = async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'School id not match with user.' });
 
 
-    const subject = new Class({
+    const classe = new Class({
       id: req.body.id,
       schoolId: Number(req.headers.schoolId),
       name: req.body.name,
     });
 
-    const rowUpdated = await subject.update();
-
+    const rowUpdated = await classe.update();
     if (rowUpdated == 0) {
       return res.status(404).json({
         message: 'Class not found.'
       });
     }
+
+
+
+    const oldListSubjects = await Subject.find({
+      classId: Number(req.body.id),
+      schoolId: Number(req.headers.schoolId)
+    });
+
+    //* Remover e atualiza matérias
+    if (oldListSubjects && oldListSubjects.length > 0) {
+      for (let i = 0; i < oldListSubjects.length; i++) {
+        const old = oldListSubjects[i];
+        let found = false;
+
+        if (req.body.subjects && req.body.subjects.length > 0) {
+          for (let j = 0; j < req.body.subjects.length; j++) {
+            const current = req.body.subjects[j];
+
+            if (old.id == current.id) {
+              //* Atualizar matéria
+              found = true;
+              const obj = new Subject({
+                id: current.id,
+                schoolId: Number(req.headers.schoolId),
+                classId: classe.id!,
+                name: current.name,
+                teacherId: current.teacherId,
+              });
+
+              await obj.update();
+              break;
+            }
+
+          }
+        }
+
+        if (!found) {
+          //* Remover matéria
+          await Subject.remove(old.id!, Number(req.headers.schoolId));
+        }
+
+      }
+    }
+
+    //* Adicionar novas matérias
+    if (req.body.subjects && req.body.subjects.length > 0) {
+      for (let j = 0; j < req.body.subjects.length; j++) {
+        const current = req.body.subjects[j];
+        let found = false;
+
+        if (oldListSubjects && oldListSubjects.length > 0) {
+          for (let i = 0; i < oldListSubjects.length; i++) {
+            const old = oldListSubjects[i];
+            if (old.id == current.id) {
+              found = true;
+              break;
+            }
+
+          }
+        }
+
+        if (!found) {
+          //* Adicionar nova matéria
+          const obj = new Subject({
+            schoolId: Number(req.headers.schoolId),
+            classId: classe.id!,
+            name: current.name,
+            teacherId: current.teacherId,
+          });
+
+          await obj.save();
+        }
+      }
+    }
+
     res.status(200).json({
       message: 'Class updated with successfully.'
     });

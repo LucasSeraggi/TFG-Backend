@@ -69,10 +69,10 @@ const update = async (req: Request, res: Response) => {
 
 const get = async (req: Request, res: Response) => {
   try {
-    const subject = await Subject.get(
-      Number(req.params.id),
-      Number(req.headers.schoolId)
-    );
+    const subject = await Subject.get({
+      id: Number(req.params.id),
+      schoolId: Number(req.headers.schoolId)
+    });
 
     if (subject) return res.status(200).json(subject);
     res.status(404).json({
@@ -88,7 +88,7 @@ const get = async (req: Request, res: Response) => {
 
 const getPaginated = async (req: Request, res: Response) => {
   try {
-    const  { data, total_count } = await Subject.getPaginated(
+    const { data, total_count } = await Subject.getPaginated(
       Number(req.headers.schoolId),
       String(req.params.search || ''),
       Number(req.params.rowsPerPage),
