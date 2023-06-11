@@ -44,7 +44,7 @@ const update = async (req: Request, res: Response) => {
     try {
   
       if (!req.body.id)
-        return res.status(400).json({ message: 'News id is required.' });
+        return res.status(500).json({ message: 'News id is required.' });
   
       if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
         return res.status(401).json({ message: 'School id not match with news.' });
@@ -70,7 +70,7 @@ const update = async (req: Request, res: Response) => {
         message: 'News updated successfully.'
       });
     } catch (err) {
-      res.status(400).json({
+      res.status(500).json({
         message: err
       });
     }
@@ -92,7 +92,7 @@ const remove = async (req: Request, res: Response) => {
         message: 'News removed successfully.'
       });
     } catch (err) {
-      res.status(400).json({
+      res.status(500).json({
         message: err
       })
     }

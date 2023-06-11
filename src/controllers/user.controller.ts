@@ -7,7 +7,7 @@ const register = async (req: Request, res: Response) => {
   try {
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
-      return res.status(401).send({ message: 'School id not match with user.' });
+      return res.status(401).json({ message: 'School id not match with user.' });
 
 
     const newUser = new User({
@@ -28,13 +28,13 @@ const register = async (req: Request, res: Response) => {
 
     await newUser.save();
 
-    res.status(201).send({
+    res.status(201).json({
       id: newUser.id,
       token: newUser.toTokenJwt,
       message: `Usuário ${newUser.name} criado com matricula ${newUser.registration}`,
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       message: err
     })
   }
@@ -44,7 +44,7 @@ const login = async (req: Request, res: Response) => {
   try {
     if (!req.body.email || !req.body.password) {
       return res
-        .status(400)
+        .status(500)
         .json({ message: "User email and password are required" });
     }
 
@@ -74,7 +74,7 @@ const login = async (req: Request, res: Response) => {
   }
   catch (error: any) {
     console.error(error);
-    return res.status(400).json({
+    return res.status(500).json({
       message: error.message
     });
   }
@@ -94,9 +94,9 @@ const find = async (req: Request, res: Response) => {
       rg: req.query.rg ? String(req.query.rg) : undefined,
     });
 
-    return res.status(200).send(user.map(u => u.toResume(req.headers.role as UserRoleEnum)));
+    return res.status(200).json(user.map(u => u.toResume(req.headers.role as UserRoleEnum)));
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       message: err
     })
   }
@@ -110,13 +110,13 @@ const get = async (req: Request, res: Response) => {
     );
 
     const role = (Number(req.params.id) == user?.id) ? UserRoleEnum.ADMIN : req.headers.role;
-    if (user) return res.status(200).send(user.toResume(role as UserRoleEnum));
+    if (user) return res.status(200).json(user.toResume(role as UserRoleEnum));
 
-    res.status(404).send({
+    res.status(404).json({
       message: 'User not found.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       message: err
     })
   }
@@ -152,15 +152,15 @@ const remove = async (req: Request, res: Response) => {
     );
 
     if (rowRemoved == 0) {
-      return res.status(404).send({
+      return res.status(404).json({
         message: 'User not found.'
       });
     }
-    return res.status(200).send({
+    return res.status(200).json({
       message: 'User removed with successfully.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       message: err
     })
   }
@@ -171,13 +171,13 @@ const update = async (req: Request, res: Response) => {
   try {
 
     if (!req.body.id)
-      return res.status(400).send({ message: 'User id is required.' });
+      return res.status(500).json({ message: 'User id is required.' });
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
-      return res.status(401).send({ message: 'School id not match with user.' });
+      return res.status(401).json({ message: 'School id not match with user.' });
 
     if (req.headers.role != UserRoleEnum.ADMIN && req.headers.userId != req.body.id)
-      return res.status(403).send({ message: 'User not allowed.' });
+      return res.status(403).json({ message: 'User not allowed.' });
 
 
     const userUpdated = new User({
@@ -199,16 +199,16 @@ const update = async (req: Request, res: Response) => {
 
     const rowsUpdate = await userUpdated.update();
     if (rowsUpdate == 0) {
-      return res.status(404).send({
+      return res.status(404).json({
         message: 'User not found.'
       });
     }
 
-    res.status(200).send({
+    res.status(200).json({
       message: 'User updated with successfully.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       message: err
     });
   }
@@ -217,11 +217,11 @@ const update = async (req: Request, res: Response) => {
 const isNewUser = async (req: Request, res: Response) => {
   try {
     const userProfile = await User.find({ email: req.query.email as string });
-    res.status(200).send({
+    res.status(200).json({
       message: (userProfile.length === 0) ? (!true) : (!false),
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       message: err,
     });
   }
@@ -234,9 +234,9 @@ const me = async (req: Request, res: Response) => {
       Number(req.headers.userId),
       Number(req.headers.schoolId)
     );
-    res.status(200).send(userProfile?.toResume(UserRoleEnum.ADMIN));
+    res.status(200).json(userProfile?.toResume(UserRoleEnum.ADMIN));
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       message: err,
     });
   }
