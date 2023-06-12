@@ -4,23 +4,13 @@ import { Storage, StorageType } from '../services/firebase/storage';
 
 const registerNewSchool = async (req: Request, res: Response) => {
   try {
-    let url;
-
     if (req.body.newLogo && req.body.newLogo.data && req.body.newLogo.name) {
       const storage = new Storage();
-      url = await storage.upload({
+      req.body.logo = await storage.upload({
         base64: req.body.newLogo.data,
         name: req.body.newLogo.name,
         type: StorageType.logo,
       });
-
-      req.body.logo = {
-        url,
-        'name': req.body.newLogo.name,
-        'mimeType': req.body.newLogo.mimeType
-      };
-      req.body.newLogo = undefined;
-      console.error(req.body);
     }
 
     const newSchool = new School({
@@ -77,7 +67,7 @@ const login = async (req: Request, res: Response) => {
         ...scl.toTokenInfo,
         token: scl.toTokenJwt,
         schoolName: scl.name,
-        schoolLogo: scl.logo?.url,
+        schoolLogo: scl.logo,
       })
     }
   } catch (err) {
@@ -144,7 +134,7 @@ const me = async (req: Request, res: Response) => {
   try {
     const school = await School.me(req.headers.schoolId as string);
     school.rows[0].password = undefined;
-    school.rows[0].logo = school.rows[0].logo?.url;
+    school.rows[0].logo = school.rows[0].logo;
     res.status(200).json(school.rows[0]);
   } catch (err) {
     res.status(500).json({

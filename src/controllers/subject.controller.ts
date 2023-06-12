@@ -47,6 +47,7 @@ const update = async (req: Request, res: Response) => {
       teacherId: req.body.teacherId,
       classId: req.body.classeId,
       name: req.body.name,
+      color: req.body.color,
     });
 
     const rowUpdated = await subject.update();

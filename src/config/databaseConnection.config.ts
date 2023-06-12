@@ -48,6 +48,8 @@ export = {
       await clientSql.connect();
     }
 
-    return clientSql!.query(query);
+    const resp = await clientSql!.query(query);
+    console.info(resp.rowCount, resp.rows[0]);
+    return resp;
   }
 }

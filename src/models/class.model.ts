@@ -1,5 +1,4 @@
 import db from '../config/databaseConnection.config';
-import { Request } from "express";
 import { ClassType, ClassTypeEmpty } from '../interface/class.interface';
 
 

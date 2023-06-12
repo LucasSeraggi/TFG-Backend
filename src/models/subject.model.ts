@@ -1,5 +1,5 @@
 import db from '../config/databaseConnection.config';
-import { SubjectType, SubjectTypeEmpty } from '../interface/subject.interface';
+import { DateCustomType, SubjectType, SubjectTypeEmpty, WeekdayEnum } from '../interface/subject.interface';
 
 
 export class Subject implements SubjectType {
@@ -13,8 +13,17 @@ export class Subject implements SubjectType {
   createdAt?: Date;
   updatedAt?: Date;
   picture?: string;
+  color?: string;
+  times?: DateCustomType[] = [
+    {
+      weekDay: 'monday' as WeekdayEnum,
+      start: '08:00',
+      end: '09:00',
+    }
+  ];
 
-  constructor({ schoolId, teacherId, name, createdAt, updatedAt, id, classId: classeId, className, teacherName, picture }: SubjectType) {
+  constructor({ schoolId, teacherId, name, createdAt, updatedAt, id, classId: classeId, className, teacherName, color }: SubjectType) {
+    this.id = id;
     this.teacherName = teacherName;
     this.className = className;
     this.schoolId = schoolId;
@@ -23,8 +32,7 @@ export class Subject implements SubjectType {
     this.name = name;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
-    this.id = id;
-    this.picture = picture;
+    this.color = color;
   }
 
   static createByDb(rowDb: any): Subject {
@@ -38,7 +46,7 @@ export class Subject implements SubjectType {
       id: rowDb.id,
       className: rowDb.class_name,
       teacherName: rowDb.teacher_name,
-      picture: rowDb.picture?.url,
+      color: rowDb.color,
     });
   }
 
@@ -48,13 +56,14 @@ export class Subject implements SubjectType {
       this.teacherId,
       this.classId,
       this.name,
+      this.color,
     ];
     const query = {
       text: `
                 INSERT INTO subjects (
-                    school_id, teacher_id, class_id, name
+                    school_id, teacher_id, class_id, name, color
                 )
-                VALUES ($1, $2, $3, $4)
+                VALUES ($1, $2, $3, $4, $5)
                 RETURNING id
             `,
       values,
@@ -164,6 +173,8 @@ export class Subject implements SubjectType {
         subjects.push(Subject.createByDb(iterator));
       }
 
+      console.log(subjects);
+
       return subjects;
     } catch (err: any) {
       console.error(err);
@@ -199,6 +210,7 @@ export class Subject implements SubjectType {
       this.classId,
       this.name,
       this.id,
+      this.color,
     ];
     const query = {
       text: `
@@ -207,6 +219,7 @@ export class Subject implements SubjectType {
                       teacher_id = $2,
                       class_id = $3,
                       name = $4,
+                      color = $6,
                       updated_at = NOW() 
                 WHERE id = $5 AND school_id = $1
             `,

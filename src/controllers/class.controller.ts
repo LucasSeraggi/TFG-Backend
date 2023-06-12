@@ -27,6 +27,7 @@ const register = async (req: Request, res: Response) => {
             classId: newClass.id!,
             name: element.name,
             teacherId: element.teacherId,
+            color: element.color,
           });
 
           await obj.save();
@@ -202,6 +203,7 @@ const update = async (req: Request, res: Response) => {
                 classId: classe.id!,
                 name: current.name,
                 teacherId: current.teacherId,
+                color: current.color,
               });
 
               await obj.update();
@@ -243,6 +245,7 @@ const update = async (req: Request, res: Response) => {
             classId: classe.id!,
             name: current.name,
             teacherId: current.teacherId,
+            color: current.color,
           });
 
           await obj.save();

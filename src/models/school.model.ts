@@ -14,7 +14,7 @@ class School implements SchoolType {
     id?: number;
     name?: string;
     cnpj?: string;
-    logo?: { url?: string };
+    logo?: string;
     // social/?: {};
     cep?: string;
     phone?: string;
@@ -107,10 +107,10 @@ class School implements SchoolType {
     static async getPaginated(school_id: number, search: string, rowsPerPage: number, page: number): Promise<{
         data: School[],
         total_count: number,
-      }> {
+    }> {
         const values = [school_id, rowsPerPage, rowsPerPage * (page - 1)];
         const query = {
-          text: `SELECT *,
+            text: `SELECT *,
                     (SELECT COUNT(*) FROM schools WHERE
                       school_id = $1 AND
                       ${search ? `name ILIKE '%${search}%' OR` : ''}
@@ -131,23 +131,23 @@ class School implements SchoolType {
                   LIMIT $2
                   OFFSET $3
               `,
-          values,
+            values,
         }
-    
+
         try {
-          const rows = await db.dbConn(query);
-          if (!rows || rows.rows.length == 0) return { data: [], total_count: 0 };
-    
-          const subjects: School[] = [];
-          for (const iterator of rows.rows) {
-            subjects.push(School.createByDb(iterator));
-          }
-          const totalCount = rows[0].total_count;
-    
-          return { data: subjects, total_count: totalCount };
+            const rows = await db.dbConn(query);
+            if (!rows || rows.rows.length == 0) return { data: [], total_count: 0 };
+
+            const subjects: School[] = [];
+            for (const iterator of rows.rows) {
+                subjects.push(School.createByDb(iterator));
+            }
+            const totalCount = rows[0].total_count;
+
+            return { data: subjects, total_count: totalCount };
         } catch (err: any) {
-          console.error(err);
-          throw err.detail;
+            console.error(err);
+            throw err.detail;
         }
     }
 
