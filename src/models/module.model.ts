@@ -1,48 +1,45 @@
 import db from "../config/databaseConnection.config";
-import { NewsType } from "../interface/news.interface";
+import { ModuleType, ModuleTypeEmpty } from "../interface/module.interface";
 
-export class News implements NewsType {
+export class Module implements ModuleType {
   id?: number;
   title: string;
   description: string;
-  schoolId: number;
   subjectId: number;
-  subjectName?: string;
+  content: string;
+  ordenation: number;
   createdAt?: Date;
   updatedAt?: Date;
-  classId: number;
 
   constructor({
     id,
     title,
     description,
-    schoolId,
     subjectId,
-    subjectName,
+    content,
     createdAt,
     updatedAt,
-    classId,
-  }: NewsType) {
+    ordenation,
+  }: ModuleType) {
     this.id = id;
     this.title = title;
     this.description = description;
-    this.schoolId = schoolId;
     this.subjectId = subjectId;
-    this.subjectName = subjectName;
+    this.content = content;
+    this.ordenation = ordenation;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
-    this.classId = classId;
   }
 
-  static async find(subjectId: number): Promise<News[]> {
+  static async find(subjectId: number): Promise<Module[]> {
     try {
       const values = [subjectId];
       const query = {
         text: `
           SELECT *
-          FROM news 
+          FROM modules 
           WHERE subject_id = $1
-          ORDER BY created_at DESC
+          ORDER BY ordenation ASC
         `,
         values,
       };
@@ -58,14 +55,14 @@ export class News implements NewsType {
     const values = [
       this.title,
       this.description,
-      this.schoolId,
-      this.classId,
       this.subjectId,
+      this.content,
+      this.ordenation,
     ];
     const query = {
       text: `
-        INSERT INTO news (
-          title, description, school_id, class_id, subject_id
+        INSERT INTO modules (
+          title, description, subject_id, content, ordenation
         )
         VALUES ($1, $2, $3, $4, $5)
     `,
@@ -79,26 +76,13 @@ export class News implements NewsType {
     }
   }
 
-  async update(): Promise<number> {
-    const values = [
-      this.title,
-      this.description,
-      this.schoolId,
-      this.classId,
-      this.subjectId,
-      this.id,
-    ];
+  static async remove(id: number): Promise<number> {
+    const values = [id];
     const query = {
       text: `
-              UPDATE news
-                SET
-                  title = $1,
-                  description = $2,
-                  class_id = $4,
-                  subject_id = $5,
-                  updated_at = NOW()
-                WHERE 
-                  id = $6 AND school_id = $3
+              DELETE FROM modules
+              WHERE 
+                id = $1
           `,
       values,
     };
@@ -112,14 +96,25 @@ export class News implements NewsType {
     }
   }
 
-  static async remove(id: number, school_id: number): Promise<number> {
-    const values = [id, school_id];
+  static async update({
+    id,
+    title,
+    description,
+    content,
+    ordenation,
+  }: ModuleTypeEmpty): Promise<number> {
+    const values = [id];
     const query = {
       text: `
-            DELETE FROM news
-            WHERE 
-              id = $1 AND
-              school_id = $2
+              UPDATE modules
+                SET
+                  ${title ? `title = '${title}',` : ""}
+                  ${description ? `description = '${description}',` : ""}
+                  ${content ? `content = '${content}',` : ""}
+                  ${ordenation ? `ordenation = ${ordenation},` : ""}
+                  updated_at = NOW()
+                WHERE 
+                  id = $1
           `,
       values,
     };
@@ -129,7 +124,7 @@ export class News implements NewsType {
       return response.rowCount;
     } catch (err: any) {
       console.error(err);
-      throw err;
+      throw err.detail ? err.detail : err.toString().replaceAll('"', "'");
     }
   }
 }

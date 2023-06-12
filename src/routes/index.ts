@@ -33,7 +33,7 @@ router.get('/api/this', [verifyToken], async (req: any, res: any) => {
       req: req.headers,
     });
   } catch (error) {
-    return res.status(400).send({ error: error });
+    return res.status(500).send({ error: error });
   }
 });
 
