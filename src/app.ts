@@ -10,6 +10,7 @@ import RoleRoutes from './routes/role.routes';
 import SubjectRoutes from './routes/subject.routes';
 import ResetPasswordRoutes from './routes/reset_password.routes';
 import NewsRoutes from './routes/news.routes';
+import ModuleRoutes from './routes/module.routes';
 
 const app = express();
 // const databaseConnection = require('./config/databaseConnection.config');
@@ -30,6 +31,7 @@ app.use(RoleRoutes);
 app.use(SubjectRoutes);
 app.use(ResetPasswordRoutes);
 app.use(NewsRoutes);
+app.use(ModuleRoutes);
 
 // catch 404 and forward to error handler
 app.use(function (_, res, __) {

@@ -1,44 +1,44 @@
 import { Request, Response } from "express";
-import { News } from '../models/news.model';
+import { News } from "../models/news.model";
 
 const find = async (req: Request, res: Response) => {
-    try {
-        const news = await News.find(Number(req.query.subjectId));
-        if (news == null) {
-            return res.status(404).json({
-                message: 'Resource not found',
-            });
-        }
-        return res.status(200).json(news);
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: err,
-        });
+  try {
+    const news = await News.find(Number(req.query.subjectId));
+    if (news == null) {
+      return res.status(404).json({
+        message: "Resource not found",
+      });
     }
-}
+    return res.status(200).json(news);
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err,
+    });
+  }
+};
 
 const register = async (req: Request, res: Response) => {
-    try {
-        const addNews = new News({
-            title: req.body.title,
-            description: req.body.description,
-            schoolId: req.body.schoolId,
-            subjectId: req.body.subjectId,
-            classId: req.body.classId,
-        });
-        await addNews.save();
-        return res.status(200).json({
-            success: true,
-            message: 'News added successfully'
-        });
-    } catch (err) {
-        return res.status(500).json({
-            success: false,
-            message: err,
-        });
-    }
-}
+  try {
+    const addNews = new News({
+      title: req.body.title,
+      description: req.body.description,
+      schoolId: req.body.schoolId,
+      subjectId: req.body.subjectId,
+      classId: req.body.classId,
+    });
+    await addNews.save();
+    return res.status(200).json({
+      success: true,
+      message: "News added successfully",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err,
+    });
+  }
+};
 
 const update = async (req: Request, res: Response) => {
     try {
@@ -77,27 +77,27 @@ const update = async (req: Request, res: Response) => {
   };
 
 const remove = async (req: Request, res: Response) => {
-    try {
-      const rowRemoved = await News.remove(
-        Number(req.params.id),
-        Number(req.headers.schoolId)
-      );
-  
-      if (rowRemoved === 0) {
-        return res.status(404).json({
-          message: 'News not found.'
-        });
-      }
-      return res.status(200).json({
-        message: 'News removed successfully.'
+  try {
+    const rowRemoved = await News.remove(
+      Number(req.query.id),
+      Number(req.query.schoolId)
+    );
+
+    if (rowRemoved === 0) {
+      return res.status(404).json({
+        message: "News not found.",
       });
-    } catch (err) {
-      res.status(500).json({
-        message: err
-      })
     }
+    return res.status(200).json({
+      message: "News removed successfully.",
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err,
+    });
+  }
 };
 
-const newsController = { find, register, remove, update }
+const newsController = { find, register, remove, update };
 
 export = newsController;
