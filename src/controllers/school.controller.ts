@@ -34,14 +34,14 @@ const registerNewSchool = async (req: Request, res: Response) => {
 
     await newSchool.save();
 
-    res.status(201).send({
+    res.status(201).json({
       id: newSchool.id,
       token: newSchool.toTokenJwt,
       message: `instituição ${newSchool.name} criado!`,
     });
 
   } catch (err) {
-    res.status(500).send({
+    res.status(500).json({
       success: false,
       message: ({ err: err })
     })
@@ -54,7 +54,7 @@ const login = async (req: Request, res: Response) => {
 
     if (!school.email || !school.password) {
       return res
-        .status(400)
+        .status(500)
         .json({ error: "School email and password are required" });
     }
 
@@ -81,7 +81,7 @@ const login = async (req: Request, res: Response) => {
       })
     }
   } catch (err) {
-    return res.status(400).json({
+    return res.status(500).json({
       message: err
     });
   }
@@ -90,12 +90,12 @@ const login = async (req: Request, res: Response) => {
 const listSchools = async (_: Request, res: Response) => {
   try {
     const schools = await School.list();
-    res.status(200).send({
+    res.status(200).json({
       success: true,
       message: schools.rows
     });
   } catch (err) {
-    res.status(500).send({
+    res.status(500).json({
       success: false,
       message: ({ err: err })
     });
@@ -108,15 +108,15 @@ const schoolDelete = async (req: Request, res: Response) => {
       Number(req.query.id)
     );
     if (rowRemoved == 0) {
-      return res.status(404).send({
+      return res.status(404).json({
         message: 'School not found.'
       });
     }
-    return res.status(200).send({
+    return res.status(200).json({
       message: 'School removed successfully.'
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).json({
       message: err
     })
   }
@@ -133,7 +133,7 @@ const getPaginated = async (req: Request, res: Response) => {
     return res.status(200).json({ data, total: total_count });
 
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       data: [],
       message: err
     })
@@ -145,7 +145,7 @@ const me = async (req: Request, res: Response) => {
     const school = await School.me(req.headers.schoolId as string);
     school.rows[0].password = undefined;
     school.rows[0].logo = school.rows[0].logo?.url;
-    res.status(200).send(school.rows[0]);
+    res.status(200).json(school.rows[0]);
   } catch (err) {
     res.status(500).json({
       success: false,

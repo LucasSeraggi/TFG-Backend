@@ -53,7 +53,7 @@ const remove = async (req: Request, res: Response) => {
       message: "Module removed successfully.",
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: err,
     });
@@ -63,7 +63,7 @@ const remove = async (req: Request, res: Response) => {
 const update = async (req: Request, res: Response) => {
   try {
     if (!req.body.id)
-      return res.status(400).send({ message: "Module id is required." });
+      return res.status(500).send({ message: "Module id is required." });
 
     const rowUpdated = await Module.update({
       id: Number(req.body.id),
@@ -84,7 +84,7 @@ const update = async (req: Request, res: Response) => {
       message: "Module updated successfully.",
     });
   } catch (err) {
-    res.status(400).send({
+    res.status(500).send({
       success: false,
       message: err,
     });
