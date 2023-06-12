@@ -123,7 +123,7 @@ const find = async (req: Request, res: Response) => {
       message: 'Class not found.'
     });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: err
     })
@@ -146,7 +146,7 @@ const remove = async (req: Request, res: Response) => {
       message: 'Class removed with successfully.'
     });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: err
     })
@@ -157,7 +157,7 @@ const update = async (req: Request, res: Response) => {
   try {
 
     if (!req.body.id)
-      return res.status(400).json({ message: 'Class id is required.' });
+      return res.status(500).json({ message: 'Class id is required.' });
 
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
       return res.status(401).json({ message: 'School id not match with user.' });
@@ -255,7 +255,7 @@ const update = async (req: Request, res: Response) => {
     });
 
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: err
     })

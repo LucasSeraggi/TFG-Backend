@@ -5,6 +5,9 @@ interface SubjectTypeEmpty extends GlobalType {
   teacherId?: number;
   classId?: number;
   name?: string;
+  className?: string;
+  teacherName?: string;
+  picture?: string;
 }
 
 interface SubjectType extends SubjectTypeEmpty {

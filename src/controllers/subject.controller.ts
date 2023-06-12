@@ -25,7 +25,7 @@ const register = async (req: Request, res: Response) => {
       id: subject.id,
     });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: err
     })
@@ -60,7 +60,7 @@ const update = async (req: Request, res: Response) => {
       message: 'Subject updated with successfully.'
     });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: err
     })
@@ -79,7 +79,7 @@ const get = async (req: Request, res: Response) => {
       message: 'Subject not found.'
     });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: err
     })
@@ -97,7 +97,7 @@ const getPaginated = async (req: Request, res: Response) => {
     return res.status(200).json({ data: data, total: total_count });
 
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       data: [],
       message: err
     })
@@ -112,13 +112,12 @@ const find = async (req: Request, res: Response) => {
       teacherId: req.query.teacher_id ? Number(req.query.teacher_id) : undefined,
       name: req.query.name ? String(req.query.name) : undefined,
     });
-    console.log(subject);
-    if (subject && subject.length > 0) return res.status(200).json(subject);
+    if (subject) return res.status(200).json(subject);
     res.status(404).json({
       message: 'Subject not found.'
     });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: err
     })
@@ -141,7 +140,7 @@ const remove = async (req: Request, res: Response) => {
       message: 'Subject removed with successfully.'
     });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: err
     })

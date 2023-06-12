@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS subjects (
     school_id INT NOT NULL REFERENCES schools (id),
     teacher_id INT NOT NULL REFERENCES users (id),
     class_id INT NOT NULL REFERENCES classes (id),
+    picture jsonb,
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
@@ -101,6 +102,20 @@ CREATE TABLE IF NOT EXISTS grades (
     period VARCHAR(10) NOT NULL,
     note INT NOT NULL,
     file jsonb,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    PRIMARY KEY (id)
+);
+
+DROP TABLE IF EXISTS news;
+
+CREATE TABLE IF NOT EXISTS news (
+    id SERIAL NOT NULL,
+    title VARCHAR(500) NOT NULL,
+    description VARCHAR(1000),
+    school_id INT NOT NULL REFERENCES schools (id),
+    class_id INT NOT NULL REFERENCES classes (id),
+    subject_id INT NOT NULL REFERENCES subjects (id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     PRIMARY KEY (id)

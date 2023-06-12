@@ -9,13 +9,13 @@ const listRoles = async (req: Request, res: Response) => {
             message: roles.rows
         });
     } catch (err) {
-        res.status(400).json({
+        res.status(500).json({
             success: false,
             message: ({ err: err })
         });
     }
 }
 
-const RoleController = {listRoles};
+const RoleController = { listRoles };
 
 export = RoleController;

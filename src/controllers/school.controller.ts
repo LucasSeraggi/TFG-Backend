@@ -54,7 +54,7 @@ const login = async (req: Request, res: Response) => {
 
     if (!school.email || !school.password) {
       return res
-        .status(400)
+        .status(500)
         .json({ error: "School email and password are required" });
     }
 
@@ -81,7 +81,7 @@ const login = async (req: Request, res: Response) => {
       })
     }
   } catch (err) {
-    return res.status(400).json({
+    return res.status(500).json({
       message: err
     });
   }
@@ -105,7 +105,7 @@ const listSchools = async (_: Request, res: Response) => {
 const schoolDelete = async (req: Request, res: Response) => {
   try {
     const rowRemoved = await School.delete(
-      Number(req.params.id)
+      Number(req.query.id)
     );
     if (rowRemoved == 0) {
       return res.status(404).json({
@@ -116,7 +116,7 @@ const schoolDelete = async (req: Request, res: Response) => {
       message: 'School removed successfully.'
     });
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       message: err
     })
   }
@@ -124,7 +124,7 @@ const schoolDelete = async (req: Request, res: Response) => {
 
 const getPaginated = async (req: Request, res: Response) => {
   try {
-    const  { data, total_count } = await School.getPaginated(
+    const { data, total_count } = await School.getPaginated(
       Number(req.headers.schoolId),
       String(req.params.search || ''),
       Number(req.params.rowsPerPage),
@@ -133,7 +133,7 @@ const getPaginated = async (req: Request, res: Response) => {
     return res.status(200).json({ data, total: total_count });
 
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       data: [],
       message: err
     })

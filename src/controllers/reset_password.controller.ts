@@ -53,7 +53,7 @@ const preResetPassword = async (req: Request, res: Response) => {
     }
 
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       message: err
     });
   }
@@ -64,12 +64,12 @@ const resetPassword = async (req: Request, res: Response) => {
     const resetPassword = new ResetPassword();
     const newPassword = await bcrypt.hash(req.body.newPassword, SALT_BCRYPT);
     const resultInfoByToken = await resetPassword.getInfoByToken(req.body.resetToken);
-    if(resultInfoByToken === null) {
+    if (resultInfoByToken === null) {
       res.status(200).json({
         error: true,
         message: 'Token expirado ou inexistente. Por favor, solicite uma nova troca de senha.',
       });
-      return ;
+      return;
     }
     const isTokenExpired = await resetPassword.isTokenExpired(new Date(resultInfoByToken.resetTokenCreatedAt), 5);
 
@@ -95,7 +95,7 @@ const resetPassword = async (req: Request, res: Response) => {
     }
 
   } catch (err) {
-    res.status(400).json({
+    res.status(500).json({
       message: err
     });
   }
