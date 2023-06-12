@@ -7,10 +7,13 @@ CREATE TYPE ENUM_USERS_ROLE AS ENUM (
     'Tutor'
 );
 
-DROP TYPE IF EXISTS ENUM_ACTIVITIES_TYPE CASCADE;
+DROP TYPE IF EXISTS RESOURCE_COURSE_ENUM CASCADE; 
 
-CREATE TYPE ENUM_ACTIVITIES_TYPE AS ENUM (
+CREATE TYPE RESOURCE_COURSE_ENUM AS ENUM (
+    'text',
+    'file',
+    'link',
     'quiz',
-    'dissertation',
+    'dissert',
     'fill_the_blanks'
 );

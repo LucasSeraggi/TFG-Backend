@@ -72,19 +72,15 @@ CREATE TABLE IF NOT EXISTS subjects (
     PRIMARY KEY (id)
 );
 
-DROP TABLE IF EXISTS activities;
+DROP TABLE IF EXISTS modules;
 
-CREATE TABLE IF NOT EXISTS activities (
+CREATE TABLE IF NOT EXISTS modules (
     id SERIAL NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    type ENUM_ACTIVITIES_TYPE NOT NULL,
+    title VARCHAR(255) NOT NULL,
     description VARCHAR(255),
-    period VARCHAR(10) NOT NULL,
-    subject_id INT NOT NULL,
-    init_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    end_date TIMESTAMP WITH TIME ZONE NOT NULL,
-    worth INT NOT NULL,
-    file jsonb,
+    ordenation INT NOT NULL,
+    subject_id INT NOT NULL REFERENCES subjects (id),
+    content jsonb,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
     PRIMARY KEY (id)
