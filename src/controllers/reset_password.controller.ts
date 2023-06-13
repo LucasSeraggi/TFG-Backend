@@ -30,7 +30,7 @@ const preResetPassword = async (req: Request, res: Response) => {
       resetPassword.insertTokenReset(token, req.body.email, req.body.isSchool);
 
       sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
-      const resetLink = process.env.REDEF_LINK || 'http://localhost:8000/#/reset-password/' + token;
+      const resetLink = process.env.REDEF_LINK + token || 'http://localhost:8000/#/reset-password/' + token;
       const email = {
         to: req.body.email,
         from: 'blackboard.tfg@gmail.com',
