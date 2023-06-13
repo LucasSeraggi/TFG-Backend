@@ -27,7 +27,10 @@ const registerNewSchool = async (req: Request, res: Response) => {
     res.status(201).json({
       id: newSchool.id,
       token: newSchool.toTokenJwt,
-      message: `instituição ${newSchool.name} criado!`,
+      message: `Instituição ${newSchool.name} criado!`,
+      ...newSchool.toTokenInfo,
+      schoolName: newSchool.name,
+      schoolLogo: newSchool.logo,
     });
 
   } catch (err) {
