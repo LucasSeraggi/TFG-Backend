@@ -229,7 +229,7 @@ class User implements UserType {
                   ${search ? `email ILIKE '%${search}%' OR` : ''}
                   ${search ? `registration ILIKE '%${search}%' OR` : ''}
                   ${search ? `name ILIKE '%${search}%' OR` : ''}
-                  true)) AS total_count
+                  ${search ? `false` : 'true'})) AS total_count
                 FROM users
                 WHERE
                   school_id = $1 AND
@@ -238,7 +238,7 @@ class User implements UserType {
                   ${search ? `email ILIKE '%${search}%' OR` : ''}
                   ${search ? `registration ILIKE '%${search}%' OR` : ''}
                   ${search ? `name ILIKE '%${search}%' OR` : ''}
-                  true)
+                  ${search ? `false` : 'true'})
               LIMIT $2
               OFFSET $3
           `,

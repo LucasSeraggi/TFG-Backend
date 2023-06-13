@@ -162,12 +162,12 @@ export class Class implements ClassType {
                     (SELECT COUNT(*) FROM classes WHERE
                       school_id = $1 AND
                       ${search ? `name ILIKE '%${search}%' OR` : ''}
-                      true) AS total_count
+                      ${search ? `false` : 'true'}) AS total_count
                     FROM classes
                     WHERE
                       school_id = $1 AND
                       (${search ? `name ILIKE '%${search}%' OR` : ''}
-                      true)
+                      ${search ? `false` : 'true'})
                   LIMIT $2
                   OFFSET $3
               `,
