@@ -26,8 +26,9 @@ class User implements UserType {
   address?: string;
   createdAt?: Date;
   updatedAt?: Date;
+  disabledAt?: Date;
 
-  constructor({ id, name, schoolId, classId, registration, birthDate: birth_date, role, phone, email, cpf, rg, profile_picture, address, createdAt, updatedAt }: UserType, password?: string) {
+  constructor({ id, name, schoolId, classId, registration, birthDate: birth_date, role, phone, email, cpf, rg, profile_picture, address, createdAt, updatedAt, disabledAt }: UserType, password?: string) {
     this.id = id;
     this.name = name;
     this.schoolId = schoolId;
@@ -43,6 +44,7 @@ class User implements UserType {
     this.address = address;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
+    this.disabledAt = disabledAt;
     this.password = password;
   }
 
@@ -59,10 +61,11 @@ class User implements UserType {
       email: rowDb.email,
       cpf: rowDb.cpf,
       rg: rowDb.rg,
-      profile_picture: rowDb.profile_picture?.url,
+      profile_picture: rowDb.profile_picture,
       address: rowDb.address,
       createdAt: rowDb.created_at,
       updatedAt: rowDb.updated_at,
+      disabledAt: rowDb.disabled_at,
     }, password,
     );
   }
@@ -152,8 +155,11 @@ class User implements UserType {
       this.address,
       this.password,
     ];
-    const query = {
-      text: `
+
+    let query;
+    if (this.role == UserRoleEnum.STUDENT) {
+      query = {
+        text: `
               INSERT INTO users (
                 name,
                 school_id,
@@ -169,15 +175,42 @@ class User implements UserType {
                 password,
                 registration
               )
-                SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 
+                SELECT $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12,
                     concat( 
                       EXTRACT(YEAR FROM  CURRENT_DATE), 
                       LPAD(COUNT(*)::varchar,4,'0')
                     ) FROM users
-                    WHERE EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM CURRENT_DATE)
+                    WHERE 
+                      school_id = $2 AND
+                      role = $5 AND
+                      EXTRACT(YEAR FROM created_at) = EXTRACT(YEAR FROM CURRENT_DATE)
               RETURNING id, registration
           `,
-      values,
+        values,
+      }
+    } else {
+      query = {
+        text: `
+              INSERT INTO users (
+                name,
+                school_id,
+                class_id,
+                birth_date,
+                role,
+                phone,
+                email,
+                cpf,
+                rg,
+                profile_picture,
+                address,
+                password,
+                registration
+              )
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, null)
+              RETURNING id, registration
+          `,
+        values,
+      }
     }
 
     try {
@@ -225,6 +258,7 @@ class User implements UserType {
                 (SELECT COUNT(*) FROM users WHERE
                   school_id = $1 AND
                   role = $4 AND
+                  disabled_at IS NULL AND
                   (${Number(search) ? `class_id = ${Number(search)} OR` : ''}
                   ${search ? `email ILIKE '%${search}%' OR` : ''}
                   ${search ? `registration ILIKE '%${search}%' OR` : ''}
@@ -234,6 +268,7 @@ class User implements UserType {
                 WHERE
                   school_id = $1 AND
                   role = $4 AND
+                  disabled_at IS NULL AND
                   (${Number(search) ? `class_id = ${Number(search)} OR` : ''}
                   ${search ? `email ILIKE '%${search}%' OR` : ''}
                   ${search ? `registration ILIKE '%${search}%' OR` : ''}
@@ -272,7 +307,7 @@ class User implements UserType {
                 ${role ? `role = '${role}' AND` : ''}
                 ${name ? `name ILIKE '%${name}%' AND` : ''}
                 ${schoolId ? `school_id = '${schoolId}' AND` : ''}
-                true
+                disabled_at IS NULL 
           `,
     }
 
@@ -296,10 +331,11 @@ class User implements UserType {
     const values = [id, school_id];
     const query = {
       text: `
-              DELETE FROM users
+              UPDATE users
+              SET disabled_at = NOW()
               WHERE 
                 id = $1 AND
-                school_id = $2
+                school_id = $2 
           `,
       values,
     }
@@ -316,37 +352,31 @@ class User implements UserType {
   async update(): Promise<number> {
     const values = [
       this.name,
-      this.schoolId,
       this.classId,
-      this.registration,
       this.birthDate,
-      this.role,
       this.phone,
-      this.email,
       this.cpf,
       this.rg,
       this.profile_picture,
       this.address,
       this.id,
+      this.schoolId,
     ];
     const query = {
       text: `
               UPDATE users
                 SET
                   name = $1,
-                  class_id = $3,
-                  registration = $4,
-                  birth_date = $5,
-                  role = $6,
-                  phone = $7,
-                  email = $8,
-                  cpf = $9,
-                  rg = $10,
-                  profile_picture = $11,
-                  address = $12,
+                  class_id = $2,
+                  birth_date = $3,
+                  phone = $4,
+                  cpf = $5,
+                  rg = $6,
+                  profile_picture = $7,
+                  address = $8,
                   updated_at = NOW()
                 WHERE 
-                  id = $13 AND school_id = $2
+                  id = $9 AND school_id = $10
           `,
       values,
     }

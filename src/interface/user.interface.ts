@@ -14,6 +14,7 @@ interface UserTypeEmpty extends GlobalType {
   rg?: string;
   profile_picture?: string;
   address?: string;
+  disabledAt?: Date;
 }
 
 interface UserType extends UserTypeEmpty {
