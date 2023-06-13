@@ -8,7 +8,7 @@ router.get("/api/news", [verifyToken], newsController.find);
 
 router.post("/api/news/register", [verifyToken], newsController.register);
 
-router.put("/api/news/update", [verifyToken], newsController.update);
+router.patch("/api/news/update", [verifyToken], newsController.update);
 
 router.delete("/api/news/delete", [verifyToken], newsController.remove);
 

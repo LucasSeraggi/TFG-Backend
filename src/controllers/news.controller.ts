@@ -51,8 +51,7 @@ const update = async (req: Request, res: Response) => {
   
       const newsUpdated = new News({
         id: Number(req.body.id),
-        schoolId: Number(req.headers.schoolId),
-  
+        schoolId: Number(req.body.school_id),
         classId: req.body.class_id,
         title: req.body.title,
         description: req.body.description,
