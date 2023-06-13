@@ -2,6 +2,7 @@ import { UserRoleEnum } from '../interface/user_role.enum';
 import User from '../models/user.model';
 import { Request, Response } from "express";
 import School from '../models/school.model';
+import { Storage, StorageType } from '../services/firebase/storage';
 
 const register = async (req: Request, res: Response) => {
   try {
@@ -9,6 +10,14 @@ const register = async (req: Request, res: Response) => {
     if (req.body.schoolId && req.body.schoolId?.toString() != req.headers.schoolId?.toString())
       return res.status(401).json({ message: 'School id not match with user.' });
 
+    if (req.body.newPicture && req.body.newPicture.data && req.body.newPicture.name) {
+      const storage = new Storage();
+      req.body.profile_picture = await storage.upload({
+        base64: req.body.newPicture.data,
+        name: req.body.newPicture.name,
+        type: StorageType.profile,
+      });
+    }
 
     const newUser = new User({
       schoolId: Number(req.headers.schoolId),
@@ -31,7 +40,7 @@ const register = async (req: Request, res: Response) => {
     res.status(201).json({
       id: newUser.id,
       token: newUser.toTokenJwt,
-      message: `Usuário ${newUser.name} criado com matricula ${newUser.registration}`,
+      message: `Usuário ${newUser.name} criado${newUser.registration ? ` com matricula ${newUser.registration}` : ''}.`,
     });
   } catch (err) {
     res.status(500).json({
@@ -179,6 +188,26 @@ const update = async (req: Request, res: Response) => {
     if (req.headers.role != UserRoleEnum.ADMIN && req.headers.userId != req.body.id)
       return res.status(403).json({ message: 'User not allowed.' });
 
+    if (req.body.newPicture && req.body.newPicture.data && req.body.newPicture.name) {
+      const storage = new Storage();
+      if (req.body.profile_picture && req.body.profile_picture.length > 0) {
+        try {
+          await storage.delete(req.body.profile_picture);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      req.body.profile_picture = await storage.upload({
+        base64: req.body.newPicture.data,
+        name: req.body.newPicture.name,
+        type: StorageType.profile,
+      });
+
+    }
+
+
+
 
     const userUpdated = new User({
       id: Number(req.body.id),
@@ -200,12 +229,12 @@ const update = async (req: Request, res: Response) => {
     const rowsUpdate = await userUpdated.update();
     if (rowsUpdate == 0) {
       return res.status(404).json({
-        message: 'User not found.'
+        message: 'Usuário não encontrado.'
       });
     }
 
     res.status(200).json({
-      message: 'User updated with successfully.'
+      message: 'Usuário atualizado com sucesso.'
     });
   } catch (err) {
     res.status(500).json({

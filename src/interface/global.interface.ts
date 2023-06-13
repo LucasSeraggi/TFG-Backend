@@ -4,9 +4,6 @@ interface GlobalType {
   id?: number;
   createdAt?: Date;
   updatedAt?: Date;
-  search?: string;
-  rowsPerPage?: number;
-  page?: number;
 }
 
 interface TokenJwtUser {

@@ -22,7 +22,7 @@ export class Storage {
 
   async delete(url: string) {
     const storageRef = ref(FirebaseConfig.storage, url);
-    deleteObject(storageRef).then(() => {
+    await deleteObject(storageRef).then(() => {
       console.log(`File deleted successfully`);
     });
   }
