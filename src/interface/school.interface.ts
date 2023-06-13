@@ -8,16 +8,15 @@ interface SchoolTypeEmpty extends GlobalType {
   cep?: string;
   phone?: string;
   email?: string;
+  disabledAt?: Date;
 }
 
 interface SchoolType extends SchoolTypeEmpty {
-  name?: string;
-  cnpj?: string;
-  logo?: string;
-  // social?:
-  cep?: string;
-  phone?: string;
-  email?: string;
+  name: string;
+  cnpj: string;
+  cep: string;
+  phone: string;
+  email: string;
 }
 
 export { SchoolType, SchoolTypeEmpty };

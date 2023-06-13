@@ -19,6 +19,9 @@ router.get('/api/school/me', [verifyToken], schoolController.me); //add auth
 // router.get('/api/schoolData', [verifyToken], schoolController.schoolProfile);
 
 //Excluir escola
-router.delete('/api/school/delete', [verifyToken], schoolController.schoolDelete);
+router.delete('/api/school/:id', [verifyToken], schoolController.schoolDelete);
+
+//Atualizar escola
+router.patch('/api/school', [verifyToken], schoolController.update);
 
 export = router;
