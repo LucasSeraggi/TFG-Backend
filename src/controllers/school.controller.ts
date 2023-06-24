@@ -176,11 +176,10 @@ const update = async (req: Request, res: Response) => {
       }
 
       req.body.logo = await storage.upload({
-        base64: req.body.newPicture.data,
-        name: req.body.newPicture.name,
+        base64: req.body.newLogo.data,
+        name: req.body.newLogo.name,
         type: StorageType.logo,
       });
-
     }
 
     const schoolUpdate = new School({
@@ -193,7 +192,6 @@ const update = async (req: Request, res: Response) => {
       email: req.body.email,
     });
 
-
     const rowsUpdate = await schoolUpdate.update();
     if (rowsUpdate == 0) {
       return res.status(404).json({
@@ -205,6 +203,7 @@ const update = async (req: Request, res: Response) => {
       message: 'School atualizado com sucesso.'
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({
       message: err
     });
