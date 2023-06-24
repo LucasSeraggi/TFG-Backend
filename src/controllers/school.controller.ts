@@ -175,7 +175,7 @@ const update = async (req: Request, res: Response) => {
       req.body.logo = await storage.upload({
         base64: req.body.newPicture.data,
         name: req.body.newPicture.name,
-        type: StorageType.profile,
+        type: StorageType.logo,
       });
 
     }

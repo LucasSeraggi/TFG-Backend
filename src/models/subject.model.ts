@@ -14,15 +14,9 @@ export class Subject implements SubjectType {
   updatedAt?: Date;
   picture?: string;
   color?: string;
-  times?: DateCustomType[] = [
-    {
-      weekDay: 'monday' as WeekdayEnum,
-      start: '08:00',
-      end: '09:00',
-    }
-  ];
+  times?: DateCustomType[];
 
-  constructor({ schoolId, teacherId, name, createdAt, updatedAt, id, classId: classeId, className, teacherName, color }: SubjectType) {
+  constructor({ schoolId, teacherId, name, createdAt, updatedAt, id, classId: classeId, className, teacherName, color, times }: SubjectType) {
     this.id = id;
     this.teacherName = teacherName;
     this.className = className;
@@ -33,9 +27,25 @@ export class Subject implements SubjectType {
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
     this.color = color;
+    this.times = times || [];
   }
 
   static createByDb(rowDb: any): Subject {
+    let listTimes;
+
+    if (!rowDb.times || rowDb.times == '{}') {
+      listTimes = [];
+    } else {
+      listTimes = rowDb.times.substring(3, rowDb.times.length - 3).split(')","(').map((time: string) => {
+        const dateCustom = time.split(',');
+        return {
+          weekDay: dateCustom[0],
+          start: dateCustom[1],
+          end: dateCustom[2],
+        }
+      });
+    }
+
     return new Subject({
       schoolId: rowDb.school_id,
       teacherId: rowDb.teacher_id,
@@ -47,6 +57,7 @@ export class Subject implements SubjectType {
       className: rowDb.class_name,
       teacherName: rowDb.teacher_name,
       color: rowDb.color,
+      times: listTimes,
     });
   }
 
@@ -61,9 +72,9 @@ export class Subject implements SubjectType {
     const query = {
       text: `
                 INSERT INTO subjects (
-                    school_id, teacher_id, class_id, name, color
+                    school_id, teacher_id, class_id, name, color, times
                 )
-                VALUES ($1, $2, $3, $4, $5)
+                VALUES ($1, $2, $3, $4, $5, ${this.saveListDateCustom(this.times)} )
                 RETURNING id
             `,
       values,
@@ -220,6 +231,7 @@ export class Subject implements SubjectType {
                       class_id = $3,
                       name = $4,
                       color = $6,
+                      times = ${this.saveListDateCustom(this.times)},
                       updated_at = NOW() 
                 WHERE id = $5 AND school_id = $1
             `,
@@ -233,5 +245,14 @@ export class Subject implements SubjectType {
       console.error(err);
       throw err.detail;
     }
+  }
+
+  private saveListDateCustom(list: DateCustomType[] | undefined | null) {
+    if (!list || list.length == 0) return 'ARRAY[]::date_custom[]';
+
+    return 'ARRAY[' +
+      list.map((dateCustom: DateCustomType) => {
+        return `ROW('${dateCustom.weekDay}', '${dateCustom.start}', '${dateCustom.end}')`;
+      }).join(',') + ']::date_custom[]';
   }
 }
