@@ -65,7 +65,7 @@ DROP TABLE IF EXISTS modules CASCADE;
 CREATE TABLE IF NOT EXISTS modules (
     id SERIAL NOT NULL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
-    description VARCHAR(255),
+    description TEXT,
     ordenation INT NOT NULL,
     subject_id INT NOT NULL REFERENCES subjects (id) ON DELETE CASCADE,
     content jsonb,
