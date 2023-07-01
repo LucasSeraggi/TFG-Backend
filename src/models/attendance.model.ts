@@ -1,6 +1,6 @@
 import db from '../config/databaseConnection.config';
 import { AttendanceType, AttendanceTypeEmpty, StudentsAttendanceType } from '../interface/attendance.interface';
-import { DateCustomType, SubjectType, SubjectTypeEmpty, WeekdayEnum } from '../interface/subject.interface';
+import { SubjectTypeEmpty } from '../interface/subject.interface';
 
 
 export class Attendance implements AttendanceType {
@@ -73,7 +73,7 @@ export class Attendance implements AttendanceType {
     ];
     const query = {
       text: `
-              INSERT INTO attendance (
+              INSERT INTO attendances (
                   school_id, subject_id, date, total_lesson, students
               )
               VALUES ($1, $2, $3, $4, ${this.saveListUserAttendance(this.students)})
@@ -97,7 +97,7 @@ export class Attendance implements AttendanceType {
     const values = [id, schoolId];
     const query = {
       text: `
-              SELECT * FROM attendance
+              SELECT * FROM attendances
               WHERE
                 id = $1 AND
                 school_id = $2
@@ -126,11 +126,11 @@ export class Attendance implements AttendanceType {
     const values = [school_id, rowsPerPage, rowsPerPage * (page - 1), subject_id];
     const query = {
       text: `SELECT *,
-                (SELECT COUNT(*) FROM attendance
+                (SELECT COUNT(*) FROM attendances
                   WHERE
                     school_id = $1 AND subject_id = $4
                 ) AS total_count
-                FROM attendance
+                FROM attendances
                 WHERE
                   school_id = $1 AND subject_id = $4
               LIMIT $2
@@ -162,7 +162,7 @@ export class Attendance implements AttendanceType {
 
     const query = {
       text: `
-              SELECT * FROM attendance
+              SELECT * FROM attendances
               WHERE
                 ${subjectId ? `subject_id = ${subjectId} AND` : ''}
                 ${date ? `date = '${date.toISOString()}' AND` : ''}
@@ -190,7 +190,7 @@ export class Attendance implements AttendanceType {
     const values = [id, school_id];
     const query = {
       text: ` 
-              DELETE FROM attendance
+              DELETE FROM attendances
               WHERE
                 id = $1 AND 
                 school_id = $2
@@ -219,7 +219,7 @@ export class Attendance implements AttendanceType {
     ];
     const query = {
       text: `
-              UPDATE attendance
+              UPDATE attendances
                 SET
                     date = $2,
                     total_lesson = $3,
