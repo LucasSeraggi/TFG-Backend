@@ -306,7 +306,7 @@ class User implements UserType {
                 ${registration ? `registration = '${registration}' AND` : ''}
                 ${role ? `role = '${role}' AND` : ''}
                 ${name ? `name ILIKE '%${name}%' AND` : ''}
-                ${schoolId ? `school_id = '${schoolId}' AND` : ''}
+                ${schoolId ? `school_id = ${schoolId} AND` : ''}
                 disabled_at IS NULL 
           `,
     }

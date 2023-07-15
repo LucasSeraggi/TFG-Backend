@@ -204,6 +204,7 @@ const update = async (req: Request, res: Response) => {
                 name: current.name,
                 teacherId: current.teacherId,
                 color: current.color,
+                times: current.times,
               });
 
               await obj.update();
@@ -246,6 +247,7 @@ const update = async (req: Request, res: Response) => {
             name: current.name,
             teacherId: current.teacherId,
             color: current.color,
+            times: current.times,
           });
 
           await obj.save();

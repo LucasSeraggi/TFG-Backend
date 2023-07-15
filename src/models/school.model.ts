@@ -8,6 +8,28 @@ import { UserRoleEnum } from '../interface/user_role.enum';
 const SECRET = process.env.JWT_SECRET || "secret";
 const SALT_BCRYPT = Number(process.env.SALT_BCRYPT) || 10;
 
+// interface SchoolInterface {
+//     id?: number;
+//     name: string;
+//     cnpj: string;
+//     logo?: string;
+//     cep: string;
+//     phone: string;
+//     email: string;
+//     createdAt?: Date;
+//     updatedAt?: Date;
+//     disabledAt?: Date;
+
+//     save(): Promise<void>;
+//     list(): Promise<School[]>;
+//     find({ email }: SchoolTypeEmpty): Promise<School[]>;
+//     disable(id: number): Promise<void>;
+//     validatePass(password: string): boolean;
+//     update(): Promise<number>;
+//     me(schoolId: string): Promise<School[]>;
+//     get toTokenJwt(): string;
+// }
+
 class School implements SchoolType {
     private password?: string;
     id?: number;
@@ -37,7 +59,7 @@ class School implements SchoolType {
         this.password = password;
     }
 
-    static createByDb(rowDb: any, password?: string): School {
+    private static createByDb(rowDb: any, password?: string): School {
         return new School({
             id: rowDb.id,
             name: rowDb.name,
@@ -199,10 +221,6 @@ class School implements SchoolType {
             console.log(err);
             throw err;
         }
-    }
-
-    static generatorJwtToken(schoolId: string, email: string) {
-        return jwt.sign({ email, schoolId }, SECRET);
     }
 
     validatePass(password: string) {
