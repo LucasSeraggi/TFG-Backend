@@ -9,11 +9,9 @@ interface GlobalType {
 interface TokenJwtUser {
   userId?: number;
   schoolId: number;
-  userName: string;
   email: string;
   role: UserRoleEnum;
   iat?: number;
-  userPhoto?: string;
   classId: number;
 }
 

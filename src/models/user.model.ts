@@ -400,8 +400,6 @@ class User implements UserType {
       schoolId: this.schoolId,
       email: this.email,
       role: this.role,
-      userName: this.name,
-      userPhoto: this.profile_picture,
       classId: this.classId,
     }
   }

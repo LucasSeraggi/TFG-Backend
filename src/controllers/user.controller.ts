@@ -60,7 +60,9 @@ const login = async (req: Request, res: Response) => {
     const users = await User.find({ email: req.body.email }, true);
 
     if (users.length == 0) {
-      return res.status(401).json({ message: "Email not registered" });
+      return res.status(401)
+        .json({ message: "Unauthorized" });
+      // return res.status(401).json({ message: "Email not registered" });
     } else if (users.length > 1) {
       return res.status(401).json({ message: "Email duplicated" });
     }

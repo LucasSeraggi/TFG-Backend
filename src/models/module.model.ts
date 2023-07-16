@@ -51,7 +51,7 @@ export class Module implements ModuleType {
     }
   }
 
-  async save(): Promise<void> {
+  async save(): Promise<number> {
     const values = [
       this.title,
       this.description,
@@ -65,11 +65,14 @@ export class Module implements ModuleType {
           title, description, subject_id, content, ordenation
         )
         VALUES ($1, $2, $3, $4, $5)
+        RETURNING id
     `,
       values,
     };
     try {
-      await db.dbConn(query);
+      const id = (await db.dbConn(query)).rows[0]?.id;
+      return id;
+
     } catch (err: any) {
       console.error(err);
       throw err.detail;

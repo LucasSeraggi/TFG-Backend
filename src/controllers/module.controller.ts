@@ -27,10 +27,11 @@ const register = async (req: Request, res: Response) => {
       content: req.body.content,
       ordenation: req.body.ordenation,
     });
-    await addModule.save();
+    const id = await addModule.save();
     return res.status(200).json({
       success: true,
       message: "Module added successfully",
+      id,
     });
   } catch (err) {
     return res.status(500).json({
@@ -70,7 +71,7 @@ const update = async (req: Request, res: Response) => {
       title: req.body.title?.toString(),
       description: req.body.description?.toString(),
       content: req.body.content
-        ? JSON.stringify(req.body.content).replace(/\\/g, "").slice(1, -1)
+        ? JSON.stringify(req.body.content)
         : undefined,
       ordenation: req.body.ordenation ? Number(req.body.ordenation) : undefined,
     });
