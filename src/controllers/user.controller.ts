@@ -77,6 +77,8 @@ const login = async (req: Request, res: Response) => {
     } else {
       return res.json({
         ...user.toTokenInfo,
+        userName: user.name,
+        userPhoto: user.profile_picture,
         schoolName: userSchool.rows[0].name,
         schoolLogo: userSchool.rows[0].logo.url,
         token: user.toTokenJwt,
